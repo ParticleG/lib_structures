@@ -90,7 +90,7 @@ std::string RoomManager::getInfos(const string &roomID) {
     return roomPtr->getInfos();
 }
 
-SubscriberID RoomManager::subscribe(const string &roomID, const RoomManager::MessageHandler &handler, const shared_ptr<tech::services::Player> &player) {
+SubscriberID RoomManager::subscribe(const string &roomID, const RoomManager::MessageHandler &handler, const shared_ptr<tech::structures::Player> &player) {
     auto topicHandler = [roomID, handler](const string &message) {
         handler(roomID, message);
     };
@@ -299,7 +299,7 @@ Json::Value RoomManager::getRoomList(const string &roomType) {
     return resultJson;
 }
 
-SubscriberID RoomManager::_subscribeToRoom(const string &roomID, typename Room::MessageHandler &&handler, const std::shared_ptr<tech::services::Player> &player) {
+SubscriberID RoomManager::_subscribeToRoom(const string &roomID, typename Room::MessageHandler &&handler, const std::shared_ptr<tech::structures::Player> &player) {
     {
         shared_lock<SharedMutex> lock(_sharedMutex);
         auto iter = _roomIDMap.find(roomID);
