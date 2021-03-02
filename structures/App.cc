@@ -2,33 +2,20 @@
 // Created by Parti on 2021/2/19.
 //
 
+#include <drogon/drogon.h>
 #include <structures/App.h>
 
+using namespace drogon;
+using namespace drogon_model;
 using namespace tech::structures;
 using namespace std;
 
-App::App(const int &versionCode) : _versionCode(versionCode) {}
-
-void App::setID(const int64_t id) {
-    _id = id;
+App::App(const int &versionCode){
+    Mapper<Techmino::App> authMapper(app().getDbClient());
+    auto app = authMapper.findOne(Criteria(Techmino::App::Cols::_version_code, CompareOperator::EQ, versionCode));
+    _app = make_shared<Techmino::App>(app);
 }
 
-int64_t App::getID() const {
-    return _id;
-}
-
-void App::setAuthToken(const string &authToken) {
-    _authToken = authToken;
-}
-
-std::string App::getAuthToken() const {
-    return _authToken;
-}
-
-void App::setAccessToken(const string &accessToken) {
-    _accessToken = accessToken;
-}
-
-std::string App::getAccessToken() const {
-    return _accessToken;
+std::shared_ptr<drogon_model::Techmino::App> App::getApp() const {
+    return _app;
 }

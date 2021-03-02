@@ -4,28 +4,19 @@
 
 #pragma once
 
-#include <models/Auth.h>
+#include <models/App.h>
+#include <models/Message.h>
 
 namespace tech::structures {
     class App {
     public:
+        App() = default;
+
         App(const int &versionCode);
 
-        void setID(const int64_t id);
-
-        int64_t getID() const;
-
-        void setAuthToken(const std::string &authToken);
-
-        std::string getAuthToken() const;
-
-        void setAccessToken(const std::string &accessToken);
-
-        std::string getAccessToken() const;
+        std::shared_ptr<drogon_model::Techmino::App> getApp() const;
 
     private:
-        int _versionCode;
-        int64_t _id{};
-        std::string _authToken{}, _accessToken{};
+        std::shared_ptr<drogon_model::Techmino::App> _app{};
     };
 }
