@@ -23,6 +23,14 @@ namespace tech::structures {
     template<class baseHandler>
     class HandlerFactory {
     public:
+        HandlerFactory() = delete;
+
+        ~HandlerFactory() = delete;
+
+        HandlerFactory(const HandlerFactory &) = delete;
+
+        const HandlerFactory &operator=(const HandlerFactory &) = delete;
+
         static HandlerFactory<baseHandler> &instance() {
             static HandlerFactory<baseHandler> instance;
             return instance;
@@ -43,14 +51,6 @@ namespace tech::structures {
         }
 
     private:
-        HandlerFactory() {};
-
-        ~HandlerFactory() {};
-
-        HandlerFactory(const HandlerFactory &);
-
-        const HandlerFactory &operator=(const HandlerFactory &);
-
         mutable std::shared_mutex _sharedMutex;
 
         std::unordered_map<unsigned int, std::shared_ptr<HandlerRegistrarInterface<baseHandler>>> _handlerRegistrarsMap;
