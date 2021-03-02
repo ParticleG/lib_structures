@@ -3,6 +3,7 @@
 //
 
 #include <structures/ChatRoom.h>
+#include <utils/Utils.h>
 
 using namespace drogon;
 using namespace tech::structures;
@@ -11,31 +12,34 @@ using namespace std;
 
 ChatRoom::ChatRoom(
         string id,
-        const uint64_t &capacity
-) : BaseRoom(move(id), capacity) {
+        const uint64_t &capacity,
+        const unsigned int &maxHistoryCount
+) : BaseRoom(move(id), capacity), _maxHistoryCount(maxHistoryCount) {}
 
-}
-
-void ChatRoom::publish(const string &message) {
+void ChatRoom::publish(Json::Value &&message) {
     shared_lock<shared_mutex> lock(_sharedMutex);
     for (auto &pair : _connectionsMap) {
-        auto connection = pair.second;
-        Json::Value response;
-        response["message"] = "Broadcast";
-        response["action"] = 2;
-        response["data"] = _parseInfo(connection, message);
-        connection->send(WebSocket::fromJson(response));
+        pair.second->send(WebSocket::fromJson(message));
     }
+    _setHistory(move(message["data"]));
 }
 
-Json::Value ChatRoom::_parseInfo(const WebSocketConnectionPtr &connection, const string &message) {
-    auto info = connection->getContext<Chat>()->getInfo();
-    Json::Value result;
-    result["rid"] = _id;
-    result["uid"] = info->getValueOfId();
-    result["username"] = info->getValueOfId();
-    result["message"] = message;
+Json::Value ChatRoom::getHistory(const unsigned int &begin, const unsigned int &count) {
+    Json::Value result(Json::arrayValue);
+    if (begin < _history.size()) {
+        auto end = begin + count > _history.size() ? _history.size() : begin + count;
+        for (unsigned int iter = begin; iter < end; ++iter) {
+            result.append(_history[iter]);
+        }
+    }
     return result;
+}
+
+void ChatRoom::_setHistory(Json::Value &&data) {
+    _history.push_back(move(data));
+    if (_history.size() > _maxHistoryCount) {
+        _history.pop_front();
+    }
 }
 
 

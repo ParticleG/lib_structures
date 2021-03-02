@@ -10,18 +10,18 @@ namespace tech::structures {
     public:
         explicit ChatRoom(
                 std::string id,
-                const uint64_t &capacity
+                const uint64_t &capacity,
+                const unsigned int &maxHistoryCount
         );
 
-        void publish(const std::string &message);
+        void publish(Json::Value &&message);
+
+        Json::Value getHistory(const unsigned int &begin, const unsigned int &count);
 
     private:
-        const static unsigned int _maxRecentMessages = 10;
-        std::deque<std::string> _recentMessages;
+        const unsigned int _maxHistoryCount;
+        std::deque<Json::Value> _history;
 
-        Json::Value _parseInfo(
-                const drogon::WebSocketConnectionPtr &connection,
-                const std::string &message
-        );
+        void _setHistory(Json::Value &&data);
     };
 }
