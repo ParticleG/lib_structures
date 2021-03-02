@@ -5,9 +5,10 @@
 #pragma once
 
 #include <models/Info.h>
+#include <structures/BasePlayer.h>
 
 namespace tech::structures {
-    class Chat {
+    class Chat : public BasePlayer {
     public:
         Chat() = default;
 

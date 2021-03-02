@@ -2,7 +2,6 @@
 // Created by Parti on 2021/2/23.
 //
 
-#include <drogon/drogon.h>
 #include <structures/Chat.h>
 
 using namespace drogon;
@@ -19,4 +18,3 @@ Chat::Chat(const int64_t &id) {
 shared_ptr<Techmino::Info> Chat::getInfo() const {
     return _info;
 }
-
