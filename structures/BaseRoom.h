@@ -16,12 +16,9 @@ namespace tech::structures {
                 std::string &&id,
                 const uint64_t &capacity
         );
+        void subscribe(drogon::WebSocketConnectionPtr connection);
 
-        virtual void publish(const std::string &message) = 0;
-
-        uint64_t subscribe(drogon::WebSocketConnectionPtr connection);
-
-        void unsubscribe(const uint64_t &id);
+        void unsubscribe(const drogon::WebSocketConnectionPtr &connection);
 
         bool isEmpty() const;
 

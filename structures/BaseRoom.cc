@@ -3,6 +3,7 @@
 //
 
 #include <structures/BaseRoom.h>
+#include <structures/BasePlayer.h>
 
 using namespace tech::structures;
 using namespace tech::utils;
@@ -24,20 +25,22 @@ BaseRoom::BaseRoom(
     _cycleID = 0;
 }
 
-uint64_t BaseRoom::subscribe(WebSocketConnectionPtr handler) {
+void BaseRoom::subscribe(WebSocketConnectionPtr connection) {
     unique_lock<shared_mutex> lock(_sharedMutex);
     if (_count == _capacity) {
         throw range_error("Room is isFull");
     }
     ++_count;
-    auto tempID = _loopCycleID();
-    _connectionsMap[tempID] = move(handler);
-    return tempID;
+    auto sid = _loopCycleID();
+    connection->getContext<BasePlayer>()->getSidsMap()->insert(make_pair(_id, sid));
+    _connectionsMap[sid] = move(connection);
 }
 
-void BaseRoom::unsubscribe(const uint64_t &id) {
+void BaseRoom::unsubscribe(const WebSocketConnectionPtr &connection) {
     unique_lock<shared_mutex> lock(_sharedMutex);
-    _connectionsMap.erase(id);
+    auto sidsMap = connection->getContext<BasePlayer>()->getSidsMap();
+    _connectionsMap.erase(sidsMap->at(_id));
+    sidsMap->erase(_id);
     --_count;
 }
 
