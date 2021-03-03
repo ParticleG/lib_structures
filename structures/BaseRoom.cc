@@ -27,18 +27,25 @@ BaseRoom::BaseRoom(
 
 void BaseRoom::subscribe(WebSocketConnectionPtr connection) {
     unique_lock<shared_mutex> lock(_sharedMutex);
+    auto sidsMap = connection->getContext<BasePlayer>()->getSidsMap();
+    if (sidsMap->count(_id)) {
+        throw range_error("Room already subscribed");
+    }
     if (_count == _capacity) {
         throw range_error("Room is isFull");
     }
     ++_count;
     auto sid = _loopCycleID();
-    connection->getContext<BasePlayer>()->getSidsMap()->insert(make_pair(_id, sid));
+    sidsMap->insert(make_pair(_id, sid));
     _connectionsMap[sid] = move(connection);
 }
 
 void BaseRoom::unsubscribe(const WebSocketConnectionPtr &connection) {
     unique_lock<shared_mutex> lock(_sharedMutex);
     auto sidsMap = connection->getContext<BasePlayer>()->getSidsMap();
+    if (!sidsMap->count(_id)) {
+        throw out_of_range("Room not subscribed");
+    }
     _connectionsMap.erase(sidsMap->at(_id));
     sidsMap->erase(_id);
     --_count;
