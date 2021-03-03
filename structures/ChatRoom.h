@@ -16,7 +16,9 @@ namespace tech::structures {
 
         void publish(Json::Value &&message);
 
-        Json::Value getHistory(const unsigned int &begin, const unsigned int &count);
+        Json::Value getHistory(const unsigned int &begin, const unsigned int &count) const;
+
+        Json::Value parseInfo() const;
 
     private:
         const unsigned int _maxHistoryCount;
