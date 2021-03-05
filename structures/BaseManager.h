@@ -29,9 +29,9 @@ namespace tech::structures {
             throw std::out_of_range("Room not found");
         }
 
-        void createRoom(std::string &&rid, RoomType &&room) {
+        void createRoom(RoomType &&room) {
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
-            _idsMap[std::move(rid)] = std::move(std::make_shared<RoomType>(std::move(room)));
+            _idsMap[room.getID()] = std::move(std::make_shared<RoomType>(std::move(room)));
         }
 
         void removeRoom(const std::string &rid) {
