@@ -10,9 +10,7 @@
 namespace tech::structures {
     class Chat : public BasePlayer {
     public:
-        Chat() = default;
-
-        Chat(const int64_t &id);
+        explicit Chat(const int64_t &id);
 
         std::shared_ptr<drogon_model::Techmino::Info> getInfo() const;
 
