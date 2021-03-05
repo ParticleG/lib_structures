@@ -12,7 +12,7 @@ namespace tech::structures {
     template<class baseHandler>
     class HandlerRegistrarInterface {
     public:
-        virtual std::shared_ptr<baseHandler> createHandler(const unsigned int &action) = 0;
+        virtual baseHandler *createHandler() = 0;
 
     protected:
         HandlerRegistrarInterface() {}
@@ -23,10 +23,6 @@ namespace tech::structures {
     template<class baseHandler>
     class HandlerFactory {
     public:
-        HandlerFactory() = delete;
-
-        ~HandlerFactory() = delete;
-
         HandlerFactory(const HandlerFactory &) = delete;
 
         const HandlerFactory &operator=(const HandlerFactory &) = delete;
@@ -36,35 +32,42 @@ namespace tech::structures {
             return instance;
         };
 
-        void registerHandler(const unsigned int &action, std::shared_ptr<HandlerRegistrarInterface<baseHandler>> registrar) {
+        void registerHandler(const unsigned int &action, HandlerRegistrarInterface<baseHandler> *registrar) {
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
             _handlerRegistrarsMap[action] = registrar;
         }
 
-        std::shared_ptr<baseHandler> getHandler(const unsigned int &action) {
+        baseHandler *getHandler(const unsigned int &action) {
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
             auto iter = _handlerRegistrarsMap.find(action);
             if (iter != _handlerRegistrarsMap.end()) {
-                return iter.second()->createHandler(action);
+                return iter->second->createHandler();
             }
             throw std::out_of_range("Action not found");
         }
 
     private:
+        HandlerFactory() {}
+
+        ~HandlerFactory() {}
+
         mutable std::shared_mutex _sharedMutex;
 
-        std::unordered_map<unsigned int, std::shared_ptr<HandlerRegistrarInterface<baseHandler>>> _handlerRegistrarsMap;
+        std::unordered_map<unsigned int, HandlerRegistrarInterface<baseHandler> *> _handlerRegistrarsMap;
     };
 
     template<class baseHandler, class implementedHandler>
     class HandlerRegistrar : public HandlerRegistrarInterface<baseHandler> {
     public:
         explicit HandlerRegistrar(const unsigned int &action) {
-            HandlerFactory<baseHandler>::instance().registerHandler(action, this);
+            HandlerFactory<baseHandler>::instance().registerHandler(
+                    action,
+                    this
+            );
         }
 
-        std::shared_ptr<baseHandler> createHandler(const unsigned int &action) {
-            return std::make_shared<implementedHandler>(action);
+        baseHandler *createHandler() {
+            return new implementedHandler();
         }
     };
 }
