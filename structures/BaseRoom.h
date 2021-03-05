@@ -24,6 +24,8 @@ namespace tech::structures {
 
         bool isFull() const;
 
+        std::string getID() const;
+
         uint64_t getCount() const;
 
         uint64_t getCapacity() const;

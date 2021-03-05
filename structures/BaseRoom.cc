@@ -27,9 +27,13 @@ BaseRoom::BaseRoom(
 
 void BaseRoom::subscribe(WebSocketConnectionPtr connection) {
     unique_lock<shared_mutex> lock(_sharedMutex);
-    auto sidsMap = connection->getContext<BasePlayer>()->getSidsMap();
+    auto player = connection->getContext<BasePlayer>();
+    auto sidsMap = player->getSidsMap();
+    if (player->isSingleSid() && !sidsMap->empty()) {
+        throw length_error("Can only subscribe one room");
+    }
     if (sidsMap->count(_id)) {
-        throw range_error("Room already subscribed");
+        throw overflow_error("Room already subscribed");
     }
     if (_count == _capacity) {
         throw range_error("Room is isFull");
@@ -44,7 +48,7 @@ void BaseRoom::unsubscribe(const WebSocketConnectionPtr &connection) {
     unique_lock<shared_mutex> lock(_sharedMutex);
     auto sidsMap = connection->getContext<BasePlayer>()->getSidsMap();
     if (!sidsMap->count(_id)) {
-        throw out_of_range("Room not subscribed");
+        throw underflow_error("Room not subscribed");
     }
     _connectionsMap.erase(sidsMap->at(_id));
     sidsMap->erase(_id);
@@ -59,6 +63,10 @@ bool BaseRoom::isEmpty() const {
 bool BaseRoom::isFull() const {
     shared_lock<shared_mutex> lock(_sharedMutex);
     return _count == _capacity;
+}
+
+std::string BaseRoom::getID() const {
+    return _id;
 }
 
 uint64_t BaseRoom::getCount() const {
