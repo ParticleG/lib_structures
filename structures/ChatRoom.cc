@@ -52,7 +52,7 @@ Json::Value ChatRoom::parseInfo() const {
     info["rid"] = _id;
     info["count"] = _count;
     info["capacity"] = _capacity;
-    return Json::Value();
+    return info;
 }
 
 
