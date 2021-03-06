@@ -9,13 +9,13 @@
 
 namespace tech::structures {
     template<class RoomType>
-    class BaseManager : public trantor::NonCopyable {
+    class BaseManager {
     public:
         virtual void subscribe(const std::string &rid, drogon::WebSocketConnectionPtr connection) = 0;
 
         virtual void unsubscribe(const std::string &rid, const drogon::WebSocketConnectionPtr &connection) = 0;
 
-        size_t getSize() const {
+        [[maybe_unused]] size_t getSize() const {
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
             return _idsMap.size();
         }
