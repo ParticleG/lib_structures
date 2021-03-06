@@ -15,6 +15,7 @@ StreamRoom::StreamRoom(
         const uint64_t &capacity
 ) : BaseRoom(move(rid), capacity) {
     _innerPlace = 0;
+    _start = false;
 }
 
 void StreamRoom::publish(Json::Value &&message) {
@@ -55,6 +56,16 @@ Json::Value StreamRoom::getPlayers() const {
         result.append(tempInfo);
     }
     return result;
+}
+
+bool StreamRoom::getStart() const {
+    shared_lock<shared_mutex> lock(_sharedMutex);
+    return _start;
+}
+
+void StreamRoom::setStart(const bool &start) {
+    unique_lock<shared_mutex> lock(_sharedMutex);
+    _start = start;
 }
 
 bool StreamRoom::checkFinished() const {

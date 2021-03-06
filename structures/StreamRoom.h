@@ -21,6 +21,10 @@ namespace tech::structures {
 
         Json::Value getPlayers() const;
 
+        bool getStart() const;
+
+        void setStart(const bool &start);
+
         bool checkFinished() const;
 
         Json::Value getDeaths() const;
@@ -29,5 +33,6 @@ namespace tech::structures {
 
     private:
         uint64_t _innerPlace;
+        bool _start;
     };
 }
