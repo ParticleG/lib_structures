@@ -13,8 +13,7 @@ using namespace std;
 StreamRoom::StreamRoom(
         string rid,
         const uint64_t &capacity
-) : BaseRoom(move(rid), capacity) {
-    _innerPlace = 0;
+) : BaseRoom(move(rid), capacity), _innerPlace(capacity) {
     _start = false;
 }
 
@@ -99,5 +98,5 @@ Json::Value StreamRoom::getDeaths() const {
 
 uint64_t StreamRoom::generatePlace() {
     unique_lock<shared_mutex> lock(_sharedMutex);
-    return ++_innerPlace;
+    return _innerPlace--;
 }
