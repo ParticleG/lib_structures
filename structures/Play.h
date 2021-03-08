@@ -22,6 +22,8 @@ namespace tech::structures {
 
         void setReady(const bool ready);
 
+        Json::Value parsePlayerInfo(Json::Value &&data) const;
+
     private:
         std::shared_ptr<drogon_model::Techmino::Info> _info{};
         std::string _config{};

@@ -34,3 +34,11 @@ bool Play::getReady() const {
 void Play::setReady(const bool ready) {
     _ready = ready;
 }
+
+Json::Value Play::parsePlayerInfo(Json::Value &&data) const {
+    auto info = getInfo();
+    data["sid"] = getSidsMap()->begin()->second;
+    data["uid"] = info->getValueOfId();
+    data["username"] = info->getValueOfId();
+    return data;
+}
