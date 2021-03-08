@@ -27,3 +27,9 @@ void Stream::setPlace(const uint64_t &place) { _place = place; }
 bool Stream::getDead() const { return _dead; }
 
 void Stream::setDead(const bool &dead) { _dead = dead; }
+
+Json::Value Stream::parsePlayerInfo(Json::Value &&data) const {
+    data["uid"] = getUid();
+    return data;
+}
+

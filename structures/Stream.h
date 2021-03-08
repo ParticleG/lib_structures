@@ -29,6 +29,8 @@ namespace tech::structures {
 
         void setDead(const bool &dead);
 
+        Json::Value parsePlayerInfo(Json::Value &&data) const;
+
     private:
         const int _uid;
         uint64_t _score{}, _survivalTime{}, _place{};
