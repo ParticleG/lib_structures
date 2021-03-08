@@ -50,8 +50,10 @@ namespace tech::structures {
         }
 
         void removeRoom(const std::string &rid) {
+            typename decltype(_idsMap)::node_type node;
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
-            if (!_idsMap.erase(rid)) {
+            node = _idsMap.extract(rid);
+            if (node.empty()) {
                 LOG_INFO << "Room " << rid << " already removed";
             }
         }
