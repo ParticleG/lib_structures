@@ -11,6 +11,17 @@ namespace tech::structures {
     template<class RoomType>
     class BaseManager {
     public:
+        class RoomWithLock {
+        public:
+            RoomWithLock(RoomType &room_, std::shared_lock<std::shared_mutex> &&lock_):
+                room(room_), lock(std::move(lock_)) {}
+            RoomType *operator->() const {
+                return &room;
+            }
+        private:
+            RoomType &room;
+            std::shared_lock<std::shared_mutex> lock;
+        };
         virtual void subscribe(const std::string &rid, drogon::WebSocketConnectionPtr connection) = 0;
 
         virtual void unsubscribe(const std::string &rid, const drogon::WebSocketConnectionPtr &connection) = 0;
@@ -20,21 +31,22 @@ namespace tech::structures {
             return _idsMap.size();
         }
 
-        std::shared_ptr<RoomType> getRoom(const std::string &rid) const {
+        RoomWithLock getRoom(const std::string &rid) {
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
             auto iter = _idsMap.find(rid);
             if (iter != _idsMap.end()) {
-                return iter->second;
+                return {iter->second, std::move(lock)};
             }
             throw std::out_of_range("Room not found");
         }
 
         void createRoom(RoomType &&room) {
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
-            if (_idsMap.find(room.getID()) != _idsMap.end()) {
+            const std::string &id = room.getID();
+            auto [itr, inserted] = _idsMap.try_emplace(std::move(id), std::move(room));
+            if (!inserted) {
                 throw std::overflow_error("Room already subscribed");
             }
-            _idsMap[room.getID()] = std::move(std::make_shared<RoomType>(std::move(room)));
         }
 
         void removeRoom(const std::string &rid) {
@@ -45,7 +57,7 @@ namespace tech::structures {
         }
 
     protected:
-        std::unordered_map<std::string, std::shared_ptr<RoomType>> _idsMap;
+        std::unordered_map<std::string, RoomType> _idsMap;
         mutable std::shared_mutex _sharedMutex;
     };
 }
