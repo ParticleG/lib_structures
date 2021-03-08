@@ -31,6 +31,9 @@ namespace tech::structures {
 
         void createRoom(RoomType &&room) {
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
+            if(_idsMap.find(room.getID()) != _idsMap.end()){
+                throw std::overflow_error("Room already subscribed");
+            }
             _idsMap[room.getID()] = std::move(std::make_shared<RoomType>(std::move(room)));
         }
 
