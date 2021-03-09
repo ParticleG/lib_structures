@@ -3,7 +3,6 @@
 //
 
 #include <structures/Chat.h>
-#include <utils/Utils.h>
 
 using namespace drogon;
 using namespace drogon_model;

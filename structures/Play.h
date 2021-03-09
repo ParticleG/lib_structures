@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <models/Info.h>
-#include <structures/BasePlayer.h>
+#include "models/Info.h"
+#include "structures/BasePlayer.h"
 
 namespace tech::structures {
     class Play : public BasePlayer {
