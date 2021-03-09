@@ -2,8 +2,8 @@
 // Created by Parti on 2021/2/27.
 //
 
-#include "structures/BaseRoom.h"
-#include "structures/Stream.h"
+#include <structures/BaseRoom.h>
+#include <structures/Stream.h>
 
 namespace tech::structures {
     class StreamRoom : public BaseRoom {

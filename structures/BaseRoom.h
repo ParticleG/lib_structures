@@ -5,7 +5,7 @@
 #pragma once
 
 #include <shared_mutex>
-#include "utils/WebSocket.h"
+#include <utils/WebSocket.h>
 
 namespace tech::structures {
     class BaseRoom : public trantor::NonCopyable {
@@ -16,6 +16,7 @@ namespace tech::structures {
                 std::string &&id,
                 const uint64_t &capacity
         );
+
         void subscribe(drogon::WebSocketConnectionPtr connection);
 
         void unsubscribe(const drogon::WebSocketConnectionPtr &connection);
@@ -31,6 +32,8 @@ namespace tech::structures {
         uint64_t getCapacity() const;
 
         bool operator==(const BaseRoom &room) const;
+
+        virtual ~BaseRoom() noexcept {};
 
     protected:
         const std::string _id;

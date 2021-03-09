@@ -5,7 +5,7 @@
 #pragma once
 
 #include <shared_mutex>
-#include "utils/WebSocket.h"
+#include <utils/WebSocket.h>
 
 namespace tech::structures {
     template<class RoomType>
@@ -57,6 +57,8 @@ namespace tech::structures {
                 LOG_INFO << "Room " << rid << " already removed";
             }
         }
+
+        virtual ~BaseManager() noexcept {};
 
     protected:
         std::unordered_map<std::string, RoomType> _idsMap;

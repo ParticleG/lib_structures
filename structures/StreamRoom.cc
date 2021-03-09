@@ -2,8 +2,8 @@
 // Created by Parti on 2021/2/27.
 //
 
-#include "structures/StreamRoom.h"
-#include "utils/Utils.h"
+#include <structures/StreamRoom.h>
+#include <utils/Utils.h>
 
 using namespace drogon;
 using namespace tech::structures;
@@ -30,7 +30,7 @@ void StreamRoom::publish(Json::Value &&message, const uint64_t &excluded) {
     {
         shared_lock<shared_mutex> lock(_sharedMutex);
         for (auto &pair : _connectionsMap) {
-            if (excluded != pair.second->getContext<Stream>()->getSidsMap()->at(_id)) {
+            if (excluded != pair.second->getContext<Stream>()->getSidsMap().at(_id)) {
                 pair.second->send(WebSocket::fromJson(message));
             }
         }

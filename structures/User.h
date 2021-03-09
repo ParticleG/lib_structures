@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "models/Auth.h"
-#include "models/Info.h"
+#include <models/Auth.h>
+#include <models/Info.h>
 
 namespace tech::structures {
     class User {

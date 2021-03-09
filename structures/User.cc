@@ -3,7 +3,7 @@
 //
 
 #include <drogon/drogon.h>
-#include "structures/User.h"
+#include <structures/User.h>
 
 using namespace drogon;
 using namespace drogon_model;

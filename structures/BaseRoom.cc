@@ -2,8 +2,8 @@
 // Created by Parti on 2021/02/27.
 //
 
-#include "structures/BaseRoom.h"
-#include "structures/BasePlayer.h"
+#include <structures/BaseRoom.h>
+#include <structures/BasePlayer.h>
 
 using namespace tech::structures;
 using namespace tech::utils;
@@ -11,7 +11,7 @@ using namespace drogon;
 using namespace std;
 
 BaseRoom::BaseRoom(BaseRoom &&room) noexcept:
-    _id(move(room._id)) {
+        _id(move(room._id)) {
     _capacity = room._capacity;
     _count = room._count;
     _cycleID = room._cycleID;
@@ -29,10 +29,10 @@ void BaseRoom::subscribe(WebSocketConnectionPtr connection) {
     unique_lock<shared_mutex> lock(_sharedMutex);
     auto player = connection->getContext<BasePlayer>();
     auto sidsMap = player->getSidsMap();
-    if (player->isSingleSid() && !sidsMap->empty()) {
+    if (player->isSingleSid() && !sidsMap.empty()) {
         throw length_error("Can only subscribe one room");
     }
-    if (sidsMap->count(_id)) {
+    if (sidsMap.count(_id)) {
         throw overflow_error("Room already subscribed");
     }
     if (_count == _capacity) {
@@ -40,18 +40,21 @@ void BaseRoom::subscribe(WebSocketConnectionPtr connection) {
     }
     ++_count;
     auto sid = _loopCycleID();
-    sidsMap->insert(make_pair(_id, sid));
+    sidsMap.insert(make_pair(_id, sid));
+    player->setSidsMap(move(sidsMap));
     _connectionsMap[sid] = move(connection);
 }
 
 void BaseRoom::unsubscribe(const WebSocketConnectionPtr &connection) {
     unique_lock<shared_mutex> lock(_sharedMutex);
-    auto sidsMap = connection->getContext<BasePlayer>()->getSidsMap();
-    if (!sidsMap->count(_id)) {
+    auto player = connection->getContext<BasePlayer>();
+    auto sidsMap = player->getSidsMap();
+    if (!sidsMap.count(_id)) {
         throw underflow_error("Room not subscribed");
     }
-    _connectionsMap.erase(sidsMap->at(_id));
-    sidsMap->erase(_id);
+    _connectionsMap.erase(sidsMap.at(_id));
+    sidsMap.erase(_id);
+    player->setSidsMap(move(sidsMap));
     --_count;
 }
 

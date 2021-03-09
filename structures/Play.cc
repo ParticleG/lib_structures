@@ -2,7 +2,7 @@
 // Created by Parti on 2021/2/23.
 //
 
-#include "structures/Play.h"
+#include <structures/Play.h>
 
 using namespace drogon;
 using namespace drogon_model;
@@ -37,7 +37,7 @@ void Play::setReady(const bool ready) {
 
 Json::Value Play::parsePlayerInfo(Json::Value &&data) const {
     auto info = getInfo();
-    data["sid"] = getSidsMap()->begin()->second;
+    data["sid"] = getSidsMap().begin()->second;
     data["uid"] = info->getValueOfId();
     data["username"] = info->getValueOfId();
     return data;

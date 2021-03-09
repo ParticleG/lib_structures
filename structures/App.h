@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "models/App.h"
-#include "models/Message.h"
+#include <models/App.h>
+#include <models/Message.h>
 
 namespace tech::structures {
     class App {

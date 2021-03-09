@@ -2,8 +2,8 @@
 // Created by Parti on 2021/2/27.
 //
 
-#include "structures/PlayRoom.h"
-#include "utils/Crypto.h"
+#include <structures/PlayRoom.h>
+#include <utils/Crypto.h>
 
 using namespace drogon;
 using namespace tech::structures;
@@ -70,7 +70,7 @@ void PlayRoom::publish(const uint64_t &action, Json::Value &&message, const uint
     {
         shared_lock<shared_mutex> lock(_sharedMutex);
         for (auto &pair : _connectionsMap) {
-            if (excluded != pair.second->getContext<Play>()->getSidsMap()->at(_id)) {
+            if (excluded != pair.second->getContext<Play>()->getSidsMap().at(_id)) {
                 pair.second->send(WebSocket::fromJson(message));
             }
         }
@@ -121,7 +121,7 @@ Json::Value PlayRoom::getPlayers() const {
         auto play = pair.second->getContext<Play>();
         auto info = play->getInfo();
 
-        tempInfo["sid"] = play->getSidsMap()->begin()->second;
+        tempInfo["sid"] = play->getSidsMap().begin()->second;
         tempInfo["uid"] = info->getValueOfId();
         tempInfo["username"] = info->getValueOfUsername();
         tempInfo["config"] = play->getConfig();

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <drogon/drogon.h>
+#include <shared_mutex>
 
 namespace tech::structures {
     class BasePlayer {
@@ -15,10 +16,15 @@ namespace tech::structures {
 
         bool isSingleSid() const;
 
-        std::shared_ptr<std::unordered_map<std::string, uint64_t>> getSidsMap() const;
+        std::unordered_map<std::string, uint64_t> getSidsMap() const;
+
+        void setSidsMap(std::unordered_map<std::string, uint64_t> &&sidsMap);
+
+        virtual ~BasePlayer() noexcept {};
 
     private:
         const bool _singleSid;
-        std::shared_ptr<std::unordered_map<std::string, uint64_t>> _sidsMap{};
+        std::unordered_map<std::string, uint64_t> _sidsMap{};
+        mutable std::shared_mutex _sharedMutex;
     };
 }
