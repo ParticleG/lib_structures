@@ -3,7 +3,7 @@
 //
 
 #include <structures/PlayRoom.h>
-#include <utils/Crypto.h>
+#include <utils/crypto.h>
 
 using namespace drogon;
 using namespace tech::structures;
@@ -19,7 +19,7 @@ PlayRoom::PlayRoom(
 ) : BaseRoom(move(id), capacity),
     _type(move(type)),
     _name(move(name)),
-    _encryptedPassword(Crypto::blake2b(password, 1)) {
+    _encryptedPassword(crypto::blake2b(password, 1)) {
     _pendingStart = false;
     _start = false;
 }
@@ -51,14 +51,14 @@ void PlayRoom::setStart(const bool &start) {
 
 bool PlayRoom::checkPassword(const std::string &password) const {
     shared_lock<shared_mutex> lock(_sharedMutex);
-    return Crypto::blake2b(password, 1) == _encryptedPassword;
+    return crypto::blake2b(password, 1) == _encryptedPassword;
 }
 
 void PlayRoom::publish(const uint64_t &action, Json::Value &&message) {
     {
         shared_lock<shared_mutex> lock(_sharedMutex);
         for (auto &pair : _connectionsMap) {
-            pair.second->send(WebSocket::fromJson(message));
+            pair.second->send(websocket::fromJson(message));
         }
     }
     if (action == 4) {
@@ -71,7 +71,7 @@ void PlayRoom::publish(const uint64_t &action, Json::Value &&message, const uint
         shared_lock<shared_mutex> lock(_sharedMutex);
         for (auto &pair : _connectionsMap) {
             if (excluded != pair.second->getContext<Play>()->getSidsMap().at(_id)) {
-                pair.second->send(WebSocket::fromJson(message));
+                pair.second->send(websocket::fromJson(message));
             }
         }
     }

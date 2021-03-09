@@ -3,7 +3,7 @@
 //
 
 #include <structures/ChatRoom.h>
-#include <utils/Utils.h>
+#include <utils/misc.h>
 
 using namespace drogon;
 using namespace tech::structures;
@@ -20,7 +20,7 @@ void ChatRoom::publish(Json::Value &&message) {
     {
         shared_lock<shared_mutex> lock(_sharedMutex);
         for (auto &pair : _connectionsMap) {
-            pair.second->send(WebSocket::fromJson(message));
+            pair.second->send(websocket::fromJson(message));
         }
     }
     _setHistory(move(message["data"]));

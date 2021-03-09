@@ -3,7 +3,7 @@
 //
 
 #include <structures/StreamRoom.h>
-#include <utils/Utils.h>
+#include <utils/misc.h>
 
 using namespace drogon;
 using namespace tech::structures;
@@ -21,7 +21,7 @@ void StreamRoom::publish(Json::Value &&message) {
     {
         shared_lock<shared_mutex> lock(_sharedMutex);
         for (auto &pair : _connectionsMap) {
-            pair.second->send(WebSocket::fromJson(message));
+            pair.second->send(websocket::fromJson(message));
         }
     }
 }
@@ -31,7 +31,7 @@ void StreamRoom::publish(Json::Value &&message, const uint64_t &excluded) {
         shared_lock<shared_mutex> lock(_sharedMutex);
         for (auto &pair : _connectionsMap) {
             if (excluded != pair.second->getContext<Stream>()->getSidsMap().at(_id)) {
-                pair.second->send(WebSocket::fromJson(message));
+                pair.second->send(websocket::fromJson(message));
             }
         }
     }

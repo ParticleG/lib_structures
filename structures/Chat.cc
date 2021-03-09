@@ -3,6 +3,7 @@
 //
 
 #include <structures/Chat.h>
+#include <utils/misc.h>
 
 using namespace drogon;
 using namespace drogon_model;
@@ -25,7 +26,7 @@ Json::Value Chat::getPlayerInfo(const string &message) const {
     Json::Value result;
     result["uid"] = info->getValueOfId();
     result["username"] = info->getValueOfId();
-    result["time"] = Utils::fromDate();
+    result["time"] = misc::fromDate();
     result["message"] = message;
     return result;
 }
