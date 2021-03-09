@@ -3,10 +3,12 @@
 //
 
 #include <structures/Chat.h>
+#include <utils/Utils.h>
 
 using namespace drogon;
 using namespace drogon_model;
 using namespace tech::structures;
+using namespace tech::utils;
 using namespace std;
 
 Chat::Chat(const int64_t &id): BasePlayer(false) {
@@ -17,4 +19,22 @@ Chat::Chat(const int64_t &id): BasePlayer(false) {
 
 shared_ptr<Techmino::Info> Chat::getInfo() const {
     return _info;
+}
+
+Json::Value Chat::getPlayerInfo(const string &message) const {
+    auto info = getInfo();
+    Json::Value result;
+    result["uid"] = info->getValueOfId();
+    result["username"] = info->getValueOfId();
+    result["time"] = Utils::fromDate();
+    result["message"] = message;
+    return result;
+}
+
+Json::Value Chat::getPlayerInfo() const {
+    auto info = getInfo();
+    Json::Value result;
+    result["uid"] = info->getValueOfId();
+    result["username"] = info->getValueOfId();
+    return result;
 }

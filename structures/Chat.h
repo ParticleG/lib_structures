@@ -14,6 +14,10 @@ namespace tech::structures {
 
         std::shared_ptr<drogon_model::Techmino::Info> getInfo() const;
 
+        Json::Value getPlayerInfo(const std::string &message) const;
+
+        Json::Value getPlayerInfo() const;
+
     private:
         std::shared_ptr<drogon_model::Techmino::Info> _info{};
     };

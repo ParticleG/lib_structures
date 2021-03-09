@@ -33,7 +33,7 @@ namespace tech::structures {
         bool operator==(const BaseRoom &room) const;
 
     protected:
-        std::string _id;
+        const std::string _id;
         uint64_t _count, _capacity, _cycleID;
         std::unordered_map<uint64_t, drogon::WebSocketConnectionPtr> _connectionsMap;
         mutable std::shared_mutex _sharedMutex;
