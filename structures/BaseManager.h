@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <parallel_hashmap/parallel_hashmap/phmap.h>
 #include <shared_mutex>
 #include <utils/websocket.h>
 
@@ -11,17 +12,14 @@ namespace tech::structures {
     template<class RoomType>
     class BaseManager {
     public:
-        class RoomWithLock {
-        public:
-            RoomWithLock(RoomType &room_, std::shared_lock<std::shared_mutex> &&lock_):
-                room(room_), lock(std::move(lock_)) {}
-            RoomType *operator->() const {
-                return &room;
-            }
-        private:
-            RoomType &room;
-            std::shared_lock<std::shared_mutex> lock;
-        };
+        using RoomMapWithMutex =
+        phmap::parallel_flat_hash_map<std::string, RoomType,
+                phmap::priv::hash_default_hash<std::string>,
+                phmap::priv::hash_default_eq<std::string>,
+                std::allocator<std::pair<const std::string, RoomType>>,
+                4,
+                std::mutex>;
+
         virtual void subscribe(const std::string &rid, drogon::WebSocketConnectionPtr connection) = 0;
 
         virtual void unsubscribe(const std::string &rid, const drogon::WebSocketConnectionPtr &connection) = 0;
@@ -31,11 +29,13 @@ namespace tech::structures {
             return _idsMap.size();
         }
 
-        RoomWithLock getRoom(const std::string &rid) {
+        RoomType &getRoom(const std::string &rid) {
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
-            auto iter = _idsMap.find(rid);
-            if (iter != _idsMap.end()) {
-                return {iter->second, std::move(lock)};
+            RoomType room;
+            if (_idsMap.if_contains(rid, [&](const RoomType &val) {
+                room = val;
+            })) {
+                return room;
             }
             throw std::out_of_range("Room not found");
         }
@@ -43,7 +43,7 @@ namespace tech::structures {
         void createRoom(RoomType &&room) {
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
             const std::string &id = room.getID();
-            auto [itr, inserted] = _idsMap.try_emplace(std::move(id), std::move(room));
+            auto[itr, inserted] = _idsMap.try_emplace(std::move(id), std::move(room));
             if (!inserted) {
                 throw std::overflow_error("Room already subscribed");
             }
@@ -61,7 +61,7 @@ namespace tech::structures {
         virtual ~BaseManager() noexcept {};
 
     protected:
-        std::unordered_map<std::string, RoomType> _idsMap;
+        RoomMapWithMutex _idsMap;
         mutable std::shared_mutex _sharedMutex;
     };
 }
