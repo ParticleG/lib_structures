@@ -26,6 +26,10 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../lib_utils lib_utils)
 
 add_library(${PROJECT_NAME} STATIC)
 
+find_path(PARALLEL_HASHMAP_INCLUDE_DIRS "parallel_hashmap/btree.h")
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${PARALLEL_HASHMAP_INCLUDE_DIRS})
+
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/structures STRUCTURE_SRC)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC UTILS_LIB)
