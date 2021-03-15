@@ -21,9 +21,9 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../lib_utils lib_utils)
 
 add_library(${PROJECT_NAME} STATIC)
 
-find_path(PARALLEL_HASHMAP_INCLUDE_DIRS "parallel_hashmap/btree.h")
+find_package(sobjectizer CONFIG REQUIRED)
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${PARALLEL_HASHMAP_INCLUDE_DIRS})
+target_link_libraries(main PRIVATE sobjectizer::SharedLib)
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/structures STRUCTURE_SRC)
 
