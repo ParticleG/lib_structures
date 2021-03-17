@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <parallel_hashmap/parallel_hashmap/phmap.h>
+#include <parallel-hashmap/parallel_hashmap/phmap.h>
 #include <shared_mutex>
 #include <utils/websocket.h>
 
@@ -29,13 +29,13 @@ namespace tech::structures {
             return _idsMap.size();
         }
 
-        RoomType &getRoom(const std::string &rid) {
+        const RoomType *getRoom(const std::string &rid) const {
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
-            RoomType room;
+            comst RoomType* roomPtr;
             if (_idsMap.if_contains(rid, [&](const RoomType &val) {
-                room = val;
+                roomPtr = val;
             })) {
-                return room;
+                return roomPtr;
             }
             throw std::out_of_range("Room not found");
         }
