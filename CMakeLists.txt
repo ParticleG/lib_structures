@@ -22,7 +22,6 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../lib_utils lib_utils)
 
 add_library(${PROJECT_NAME} STATIC)
 
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/parallel-hashmap PHMAP_SRC)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/structures STRUCTURE_SRC)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC UTILS_LIB)
@@ -30,4 +29,4 @@ target_link_libraries(${PROJECT_NAME} PUBLIC UTILS_LIB)
 target_include_directories(${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
-target_sources(${PROJECT_NAME} PUBLIC ${PHMAP_SRC} ${STRUCTURE_SRC})
+target_sources(${PROJECT_NAME} PUBLIC ${STRUCTURE_SRC})
