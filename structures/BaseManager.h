@@ -5,33 +5,35 @@
 #pragma once
 
 #include <shared_mutex>
+#include <memory>
 #include <utils/websocket.h>
 
 namespace tech::structures {
     template<class RoomType>
     class BaseManager {
     public:
-        typedef struct __RoomWithMutex {
-            __RoomWithMutex(RoomType &&room) :
-                    room(std::move(room)) {}
-
+        struct RoomWithMutex {
+            RoomWithMutex(RoomType &&room) :
+                    room(std::move(room)), sharedMutex(new std::shared_mutex()) {}
+            RoomWithMutex(RoomWithMutex &&moved):
+                    room(std::move(moved.room)), sharedMutex(std::move(moved.sharedMutex)) {}
             RoomType room;
-            mutable std::shared_mutex sharedMutex;
-        } RoomWithMutex;
-        typedef struct __SharedRoom {
-            __SharedRoom(const RoomType &room, std::shared_lock<std::shared_mutex> &&lock) :
+            mutable std::unique_ptr<std::shared_mutex> sharedMutex;
+        };
+        struct SharedRoom {
+            SharedRoom(RoomType &room, std::shared_lock<std::shared_mutex> &&lock) :
                     room(room), lock(std::move(lock)) {}
 
-            RoomType room;
+            RoomType &room;
             std::shared_lock<std::shared_mutex> lock;
-        } SharedRoom;
-        typedef struct __UniqueRoom {
-            __UniqueRoom(const RoomType &room, std::unique_lock<std::shared_mutex> &&lock) :
+        };
+        struct UniqueRoom {
+            UniqueRoom(RoomType &room, std::unique_lock<std::shared_mutex> &&lock) :
                     room(room), lock(std::move(lock)) {}
 
-            RoomType room;
+            RoomType &room;
             std::unique_lock<std::shared_mutex> lock;
-        } UniqueRoom;
+        };
 
         virtual void subscribe(const std::string &rid, drogon::WebSocketConnectionPtr connection) = 0;
 
@@ -42,25 +44,25 @@ namespace tech::structures {
             return _idsMap.size();
         }
 
-        SharedRoom &getSharedRoom(const std::string &rid) {
-            std::shared_lock<std::shared_mutex> lock(_sharedMutex);
-            auto iter = _idsMap.find(rid);
-            if (iter != _idsMap.end()) {
-                return SharedRoom(
-                        iter->second.room,
-                        std::move(std::shared_lock<std::shared_mutex>(iter->second.sharedMutex))
-                );
-            }
-            throw std::out_of_range("Room not found");
-        }
-
-        UniqueRoom &getUniqueRoom(const std::string &rid) {
+        SharedRoom getSharedRoom(const std::string &rid) {
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
             auto iter = _idsMap.find(rid);
             if (iter != _idsMap.end()) {
                 return {
                         iter->second.room,
-                        std::move(std::unique_lock<std::shared_mutex>(iter->second.sharedMutex))
+                        std::shared_lock<std::shared_mutex>(*iter->second.sharedMutex)
+                };
+            }
+            throw std::out_of_range("Room not found");
+        }
+
+        UniqueRoom getUniqueRoom(const std::string &rid) {
+            std::shared_lock<std::shared_mutex> lock(_sharedMutex);
+            auto iter = _idsMap.find(rid);
+            if (iter != _idsMap.end()) {
+                return {
+                        iter->second.room,
+                        std::unique_lock<std::shared_mutex>(*iter->second.sharedMutex)
                 };
             }
             throw std::out_of_range("Room not found");
@@ -83,7 +85,7 @@ namespace tech::structures {
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
             auto iter = _idsMap.find(rid);
             if (iter != _idsMap.end()) {
-                std::unique_lock<std::shared_mutex>(iter->second.sharedMutex);
+                std::unique_lock<std::shared_mutex>(*iter->second.sharedMutex);
                 node = _idsMap.extract(rid);
                 if (node.empty()) {
                     LOG_INFO << "Room " << rid << " already removed";
