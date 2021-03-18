@@ -12,6 +12,9 @@ namespace tech::structures {
     class BaseManager {
     public:
         typedef struct __RoomWithMutex {
+            __RoomWithMutex(RoomType &&room) :
+                    room(std::move(room)) {}
+
             RoomType room;
             mutable std::shared_mutex sharedMutex;
         } RoomWithMutex;
@@ -43,10 +46,10 @@ namespace tech::structures {
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
             auto iter = _idsMap.find(rid);
             if (iter != _idsMap.end()) {
-                return {
-                        iter->second.second,
-                        std::move(std::shared_lock<std::shared_mutex>(iter->second.first))
-                };
+                return SharedRoom(
+                        iter->second.room,
+                        std::move(std::shared_lock<std::shared_mutex>(iter->second.sharedMutex))
+                );
             }
             throw std::out_of_range("Room not found");
         }
@@ -56,8 +59,8 @@ namespace tech::structures {
             auto iter = _idsMap.find(rid);
             if (iter != _idsMap.end()) {
                 return {
-                        iter->second.second,
-                        std::move(std::unique_lock<std::shared_mutex>(iter->second.first))
+                        iter->second.room,
+                        std::move(std::unique_lock<std::shared_mutex>(iter->second.sharedMutex))
                 };
             }
             throw std::out_of_range("Room not found");
@@ -68,7 +71,7 @@ namespace tech::structures {
             const std::string &id = room.getID();
             auto[itr, inserted] = _idsMap.try_emplace(
                     std::move(id),
-                    RoomWithMutex(std::move(room), std::shared_mutex{})
+                    RoomWithMutex(std::move(room))
             );
             if (!inserted) {
                 throw std::overflow_error("Room already subscribed");

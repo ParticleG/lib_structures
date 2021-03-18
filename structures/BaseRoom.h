@@ -10,6 +10,8 @@
 namespace tech::structures {
     class BaseRoom : public trantor::NonCopyable {
     public:
+        explicit BaseRoom(const BaseRoom &room);
+
         explicit BaseRoom(BaseRoom &&room) noexcept;
 
         explicit BaseRoom(
