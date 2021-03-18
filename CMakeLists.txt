@@ -12,7 +12,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-    add_definitions(-D_CRT_USE_BUILTIN_OFFSETOF)
 endif ()
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
