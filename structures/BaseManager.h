@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <parallel-hashmap/parallel_hashmap/phmap.h>
 #include <shared_mutex>
 #include <utils/websocket.h>
 
@@ -12,13 +11,24 @@ namespace tech::structures {
     template<class RoomType>
     class BaseManager {
     public:
-        using RoomMapWithMutex =
-        phmap::parallel_flat_hash_map<std::string, RoomType,
-                phmap::priv::hash_default_hash<std::string>,
-                phmap::priv::hash_default_eq<std::string>,
-                std::allocator<std::pair<const std::string, RoomType>>,
-                4,
-                std::mutex>;
+        typedef struct __RoomWithMutex {
+            RoomType room;
+            mutable std::shared_mutex sharedMutex;
+        } RoomWithMutex;
+        typedef struct __SharedRoom {
+            __SharedRoom(const RoomType &room, std::shared_lock<std::shared_mutex> &&lock) :
+                    room(room), lock(std::move(lock)) {}
+
+            RoomType room;
+            std::shared_lock<std::shared_mutex> lock;
+        } SharedRoom;
+        typedef struct __UniqueRoom {
+            __UniqueRoom(const RoomType &room, std::unique_lock<std::shared_mutex> &&lock) :
+                    room(room), lock(std::move(lock)) {}
+
+            RoomType room;
+            std::unique_lock<std::shared_mutex> lock;
+        } UniqueRoom;
 
         virtual void subscribe(const std::string &rid, drogon::WebSocketConnectionPtr connection) = 0;
 
@@ -29,13 +39,26 @@ namespace tech::structures {
             return _idsMap.size();
         }
 
-        const RoomType *getRoom(const std::string &rid) const {
+        SharedRoom &getSharedRoom(const std::string &rid) {
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
-            comst RoomType* roomPtr;
-            if (_idsMap.if_contains(rid, [&](const RoomType &val) {
-                roomPtr = val;
-            })) {
-                return roomPtr;
+            auto iter = _idsMap.find(rid);
+            if (iter != _idsMap.end()) {
+                return {
+                        iter->second.second,
+                        std::move(std::shared_lock<std::shared_mutex>(iter->second.first))
+                };
+            }
+            throw std::out_of_range("Room not found");
+        }
+
+        UniqueRoom &getUniqueRoom(const std::string &rid) {
+            std::shared_lock<std::shared_mutex> lock(_sharedMutex);
+            auto iter = _idsMap.find(rid);
+            if (iter != _idsMap.end()) {
+                return {
+                        iter->second.second,
+                        std::move(std::unique_lock<std::shared_mutex>(iter->second.first))
+                };
             }
             throw std::out_of_range("Room not found");
         }
@@ -43,7 +66,10 @@ namespace tech::structures {
         void createRoom(RoomType &&room) {
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
             const std::string &id = room.getID();
-            auto[itr, inserted] = _idsMap.try_emplace(std::move(id), std::move(room));
+            auto[itr, inserted] = _idsMap.try_emplace(
+                    std::move(id),
+                    RoomWithMutex(std::move(room), std::shared_mutex{})
+            );
             if (!inserted) {
                 throw std::overflow_error("Room already subscribed");
             }
@@ -52,16 +78,22 @@ namespace tech::structures {
         void removeRoom(const std::string &rid) {
             typename decltype(_idsMap)::node_type node;
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
-            node = _idsMap.extract(rid);
-            if (node.empty()) {
-                LOG_INFO << "Room " << rid << " already removed";
+            auto iter = _idsMap.find(rid);
+            if (iter != _idsMap.end()) {
+                std::unique_lock<std::shared_mutex>(iter->second.sharedMutex);
+                node = _idsMap.extract(rid);
+                if (node.empty()) {
+                    LOG_INFO << "Room " << rid << " already removed";
+                }
+            } else {
+                LOG_INFO << "Room " << rid << " does not exist";
             }
         }
 
         virtual ~BaseManager() noexcept {};
 
     protected:
-        RoomMapWithMutex _idsMap;
+        std::unordered_map<std::string, RoomWithMutex> _idsMap;
         mutable std::shared_mutex _sharedMutex;
     };
 }
