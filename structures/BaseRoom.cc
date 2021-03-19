@@ -10,8 +10,15 @@ using namespace tech::utils;
 using namespace drogon;
 using namespace std;
 
+BaseRoom::BaseRoom(const BaseRoom &room) :
+        _id(room._id) {
+    _capacity = room._capacity;
+    _count = room._count;
+    _cycleID = room._cycleID;
+}
+
 BaseRoom::BaseRoom(BaseRoom &&room) noexcept:
-        _id(move(room._id)) {
+        _id(room._id) {
     _capacity = room._capacity;
     _count = room._count;
     _cycleID = room._cycleID;
