@@ -10,9 +10,9 @@ using namespace drogon_model;
 using namespace tech::structures;
 using namespace std;
 
-App::App(const int &versionCode){
-    Mapper<Techmino::App> authMapper(app().getDbClient());
-    auto app = authMapper.findOne(Criteria(Techmino::App::Cols::_version_code, CompareOperator::EQ, versionCode));
+App::App() {
+    Mapper<Techmino::App> appMapper(app().getDbClient());
+    auto app = appMapper.orderBy(Techmino::App::Cols::_version_code, SortOrder::DESC).limit(1).findAll()[0];
     _app = make_shared<Techmino::App>(app);
 }
 
