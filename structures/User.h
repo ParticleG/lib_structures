@@ -12,11 +12,11 @@ namespace tech::structures {
     public:
         User() = default;
 
-        User(const int64_t &id);
+        explicit User(const int64_t &id);
 
-        std::shared_ptr<drogon_model::Techmino::Auth> getAuth() const;
+        [[nodiscard]] std::shared_ptr<drogon_model::Techmino::Auth> getAuth() const;
 
-        std::shared_ptr<drogon_model::Techmino::Info> getInfo() const;
+        [[nodiscard]] std::shared_ptr<drogon_model::Techmino::Info> getInfo() const;
 
     private:
         std::shared_ptr<drogon_model::Techmino::Auth> _auth{};
