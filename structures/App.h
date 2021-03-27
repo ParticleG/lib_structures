@@ -10,11 +10,9 @@
 namespace tech::structures {
     class App {
     public:
-        App() = default;
+        App();
 
-        App(const int &versionCode);
-
-        std::shared_ptr<drogon_model::Techmino::App> getApp() const;
+        [[nodiscard]] std::shared_ptr<drogon_model::Techmino::App> getApp() const;
 
     private:
         std::shared_ptr<drogon_model::Techmino::App> _app{};
