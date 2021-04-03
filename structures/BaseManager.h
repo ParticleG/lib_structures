@@ -13,9 +13,9 @@ namespace tech::structures {
     class BaseManager {
     public:
         struct RoomWithMutex {
-            RoomWithMutex(RoomType &&room) :
+            explicit RoomWithMutex(RoomType &&room) :
                     room(std::move(room)), sharedMutex(new std::shared_mutex()) {}
-            RoomWithMutex(RoomWithMutex &&moved):
+            RoomWithMutex(RoomWithMutex &&moved) noexcept :
                     room(std::move(moved.room)), sharedMutex(std::move(moved.sharedMutex)) {}
             RoomType room;
             mutable std::unique_ptr<std::shared_mutex> sharedMutex;
@@ -72,7 +72,7 @@ namespace tech::structures {
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
             const std::string &id = room.getID();
             auto[itr, inserted] = _idsMap.try_emplace(
-                    std::move(id),
+                    id,
                     RoomWithMutex(std::move(room))
             );
             if (!inserted) {
@@ -95,7 +95,7 @@ namespace tech::structures {
             }
         }
 
-        virtual ~BaseManager() noexcept {};
+        virtual ~BaseManager() noexcept = default;
 
     protected:
         std::unordered_map<std::string, RoomWithMutex> _idsMap;

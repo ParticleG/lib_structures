@@ -24,7 +24,7 @@ namespace tech::structures {
 
     private:
         const bool _singleSid;
-        std::unordered_map<std::string, uint64_t> _sidsMap{};
+        std::unordered_map<std::string, uint64_t> _sidsMap{}; // Room - SID
         mutable std::shared_mutex _sharedMutex;
     };
 }
