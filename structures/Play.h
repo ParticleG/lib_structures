@@ -20,13 +20,13 @@ namespace tech::structures {
 
         bool getReady() const;
 
-        void setReady(const bool ready);
+        void setReady(bool ready);
 
         Json::Value parsePlayerInfo(Json::Value &&data) const;
 
     private:
-        std::shared_ptr<drogon_model::Techmino::Info> _info{};
-        std::string _config{};
-        bool _ready{};
+        std::shared_ptr<drogon_model::Techmino::Info> _info;
+        std::string _config;
+        bool _ready;
     };
 }

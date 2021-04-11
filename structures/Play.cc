@@ -9,7 +9,7 @@ using namespace drogon_model;
 using namespace tech::structures;
 using namespace std;
 
-Play::Play(const int64_t &id) : BasePlayer(true) {
+Play::Play(const int64_t &id) : BasePlayer(true), _config(string()), _ready(false) {
     Mapper<Techmino::Info> infoMapper(app().getDbClient());
     auto info = infoMapper.findOne(Criteria(Techmino::Info::Cols::__id, CompareOperator::EQ, id));
     _info = make_shared<Techmino::Info>(info);
@@ -37,8 +37,8 @@ void Play::setReady(const bool ready) {
 
 Json::Value Play::parsePlayerInfo(Json::Value &&data) const {
     auto info = getInfo();
-    data["sid"] = getSidsMap().begin()->second;
+    data["sid"] = getSid();
     data["uid"] = info->getValueOfId();
-    data["username"] = info->getValueOfId();
+    data["username"] = info->getValueOfUsername();
     return data;
 }
