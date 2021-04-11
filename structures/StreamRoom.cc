@@ -5,34 +5,34 @@
 #include <structures/StreamRoom.h>
 #include <utils/misc.h>
 
+#include <utility>
+
 using namespace drogon;
 using namespace tech::structures;
 using namespace tech::utils;
 using namespace std;
 
 StreamRoom::StreamRoom(
-        string rid,
+        string playRid,
+        string srid,
+        const uint64_t &initCount,
         const uint64_t &capacity
-) : BaseRoom(move(rid), capacity), _innerPlace(capacity) {
+) : BaseRoom(move(srid), capacity), _playRid(std::move(playRid)), _initCount(initCount), _innerPlace(initCount) {
     _start = false;
 }
 
 void StreamRoom::publish(Json::Value &&message) {
-    {
-        shared_lock<shared_mutex> lock(_sharedMutex);
-        for (auto &pair : _connectionsMap) {
-            pair.second->send(websocket::fromJson(message));
-        }
+    shared_lock<shared_mutex> lock(_sharedMutex);
+    for (auto &pair : _connectionsMap) {
+        pair.second->send(websocket::fromJson(message));
     }
 }
 
 void StreamRoom::publish(Json::Value &&message, const uint64_t &excluded) {
-    {
-        shared_lock<shared_mutex> lock(_sharedMutex);
-        for (auto &pair : _connectionsMap) {
-            if (excluded != pair.second->getContext<Stream>()->getSidsMap().at(_id)) {
-                pair.second->send(websocket::fromJson(message));
-            }
+    shared_lock<shared_mutex> lock(_sharedMutex);
+    for (auto &pair : _connectionsMap) {
+        if (excluded != pair.second->getContext<Stream>()->getSid()) {
+            pair.second->send(websocket::fromJson(message));
         }
     }
 }
@@ -50,11 +50,14 @@ Json::Value StreamRoom::getPlayers() const {
     shared_lock<shared_mutex> lock(_sharedMutex);
     Json::Value result(Json::arrayValue);
     for (auto &pair : _connectionsMap) {
-        Json::Value tempInfo;
-        tempInfo["uid"] = pair.second->getContext<Stream>()->getUid();
-        result.append(tempInfo);
+        result.append(pair.second->getContext<Stream>()->parsePlayerInfo(Json::objectValue));
     }
     return result;
+}
+
+std::string StreamRoom::getPlayRid() const {
+    shared_lock<shared_mutex> lock(_sharedMutex);
+    return _playRid;
 }
 
 bool StreamRoom::getStart() const {
@@ -67,18 +70,26 @@ void StreamRoom::setStart(const bool &start) {
     _start = start;
 }
 
-bool StreamRoom::checkFinished() const {
-    bool finished = true;
-    {
-        shared_lock<shared_mutex> lock(_sharedMutex);
-        for (auto &pair : _connectionsMap) {
-            if (!pair.second->getContext<Stream>()->getDead()) {
-                finished = false;
-                break;
-            }
+bool StreamRoom::checkReady() const {
+    int ready = 0;
+    shared_lock<shared_mutex> lock(_sharedMutex);
+    for (auto &pair : _connectionsMap) {
+        if (!pair.second->getContext<Stream>()->getWatch()) {
+            ready++;
         }
     }
-    return finished;
+    return ready == _initCount;
+}
+
+bool StreamRoom::checkFinished() const {
+    int finished = 0;
+    shared_lock<shared_mutex> lock(_sharedMutex);
+    for (auto &pair : _connectionsMap) {
+        if (pair.second->getContext<Stream>()->getDead()) {
+            finished++;
+        }
+    }
+    return (finished >= _count - 1);
 }
 
 Json::Value StreamRoom::getDeaths() const {
@@ -88,7 +99,7 @@ Json::Value StreamRoom::getDeaths() const {
         auto stream = pair.second->getContext<Stream>();
         Json::Value tempInfo;
         tempInfo["uid"] = stream->getUid();
-        tempInfo["place"] = stream->getPlace();
+        tempInfo["place"] = stream->getPlace() ? stream->getPlace() : 1;
         tempInfo["score"] = stream->getScore();
         tempInfo["survivalTime"] = stream->getSurvivalTime();
         result.append(tempInfo);

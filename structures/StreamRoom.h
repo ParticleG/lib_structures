@@ -9,7 +9,9 @@ namespace tech::structures {
     class StreamRoom : public BaseRoom {
     public:
         explicit StreamRoom(
-                std::string rid,
+                std::string playRid,
+                std::string srid,
+                const uint64_t &initCount,
                 const uint64_t &capacity
         );
 
@@ -21,9 +23,13 @@ namespace tech::structures {
 
         Json::Value getPlayers() const;
 
+        std::string getPlayRid() const;
+
         bool getStart() const;
 
         void setStart(const bool &start);
+
+        bool checkReady() const;
 
         bool checkFinished() const;
 
@@ -32,6 +38,8 @@ namespace tech::structures {
         uint64_t generatePlace();
 
     private:
+        const std::string _playRid;
+        const uint64_t _initCount;
         uint64_t _innerPlace;
         bool _start;
     };
