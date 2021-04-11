@@ -25,6 +25,10 @@ namespace tech::structures {
 
         void setPlace(const uint64_t &place);
 
+        bool getWatch() const;
+
+        void setWatch(const bool &watch);
+
         bool getDead() const;
 
         void setDead(const bool &dead);
@@ -34,6 +38,6 @@ namespace tech::structures {
     private:
         const int _uid;
         uint64_t _score{}, _survivalTime{}, _place{};
-        bool _dead{};
+        bool _watch{}, _dead{};
     };
 }
