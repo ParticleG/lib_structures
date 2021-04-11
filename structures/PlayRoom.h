@@ -26,6 +26,10 @@ namespace tech::structures {
 
         void setStart(const bool &start);
 
+        bool checkReady() const;
+
+        void resetReady();
+
         bool checkPassword(const std::string &password) const;
 
         void publish(const uint64_t &action, Json::Value &&message);

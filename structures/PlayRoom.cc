@@ -49,6 +49,25 @@ void PlayRoom::setStart(const bool &start) {
     _start = start;
 }
 
+bool PlayRoom::checkReady() const {
+    bool ready = true;
+    shared_lock<shared_mutex> lock(_sharedMutex);
+    for (auto &pair : _connectionsMap) {
+        if (!pair.second->getContext<Play>()->getReady()) {
+            ready = false;
+            break;
+        }
+    }
+    return ready;
+}
+
+void PlayRoom::resetReady() {
+    shared_lock<shared_mutex> lock(_sharedMutex);
+    for (auto &pair : _connectionsMap) {
+        pair.second->getContext<Play>()->setReady(false);
+    }
+}
+
 bool PlayRoom::checkPassword(const std::string &password) const {
     shared_lock<shared_mutex> lock(_sharedMutex);
     return crypto::blake2b(password, 1) == _encryptedPassword;
@@ -70,7 +89,7 @@ void PlayRoom::publish(const uint64_t &action, Json::Value &&message, const uint
     {
         shared_lock<shared_mutex> lock(_sharedMutex);
         for (auto &pair : _connectionsMap) {
-            if (excluded != pair.second->getContext<Play>()->getSidsMap().at(_id)) {
+            if (excluded != pair.second->getContext<Play>()->getSid()) {
                 pair.second->send(websocket::fromJson(message));
             }
         }
@@ -121,7 +140,7 @@ Json::Value PlayRoom::getPlayers() const {
         auto play = pair.second->getContext<Play>();
         auto info = play->getInfo();
 
-        tempInfo["sid"] = play->getSidsMap().begin()->second;
+        tempInfo["sid"] = play->getSid();
         tempInfo["uid"] = info->getValueOfId();
         tempInfo["username"] = info->getValueOfUsername();
         tempInfo["config"] = play->getConfig();
@@ -130,4 +149,3 @@ Json::Value PlayRoom::getPlayers() const {
     }
     return result;
 }
-
