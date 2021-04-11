@@ -32,46 +32,42 @@ BaseRoom::BaseRoom(
     _cycleID = 0;
 }
 
-void BaseRoom::subscribe(WebSocketConnectionPtr connection) {
-    unique_lock<shared_mutex> lock(_sharedMutex);
+void BaseRoom::subscribe(WebSocketConnectionPtr connection) { //TODO: Make sidsMap safer
+    unique_lock <shared_mutex> lock(_sharedMutex);
     auto player = connection->getContext<BasePlayer>();
-    auto sidsMap = player->getSidsMap();
-    if (player->isSingleSid() && !sidsMap.empty()) {
+    if (player->isSingleSid() && !get<string>(player->getRid()).empty()) {
         throw length_error("Can only subscribe one room");
     }
-    if (sidsMap.count(_id)) {
+    if (get<string>(player->getRid()) == _id) {
         throw overflow_error("Room already subscribed");
     }
     if (_count == _capacity) {
-        throw range_error("Room is isFull");
+        throw range_error("Room is full");
     }
     ++_count;
     auto sid = _loopCycleID();
-    sidsMap.insert(make_pair(_id, sid));
-    player->setSidsMap(move(sidsMap));
+    player->setSid(_id, sid);
     _connectionsMap[sid] = move(connection);
 }
 
 void BaseRoom::unsubscribe(const WebSocketConnectionPtr &connection) {
-    unique_lock<shared_mutex> lock(_sharedMutex);
+    unique_lock <shared_mutex> lock(_sharedMutex);
     auto player = connection->getContext<BasePlayer>();
-    auto sidsMap = player->getSidsMap();
-    if (!sidsMap.count(_id)) {
+    if (get<string>(player->getRid()) != _id) {
         throw underflow_error("Room not subscribed");
     }
-    _connectionsMap.erase(sidsMap.at(_id));
-    sidsMap.erase(_id);
-    player->setSidsMap(move(sidsMap));
+    _connectionsMap.erase(player->getSid(_id));
+    player->setSid(_id);
     --_count;
 }
 
 bool BaseRoom::isEmpty() const {
-    shared_lock<shared_mutex> lock(_sharedMutex);
+    shared_lock <shared_mutex> lock(_sharedMutex);
     return _connectionsMap.empty();
 }
 
 bool BaseRoom::isFull() const {
-    shared_lock<shared_mutex> lock(_sharedMutex);
+    shared_lock <shared_mutex> lock(_sharedMutex);
     return _count == _capacity;
 }
 
@@ -80,12 +76,12 @@ std::string BaseRoom::getID() const {
 }
 
 uint64_t BaseRoom::getCount() const {
-    shared_lock<shared_mutex> lock(_sharedMutex);
+    shared_lock <shared_mutex> lock(_sharedMutex);
     return _count;
 }
 
 uint64_t BaseRoom::getCapacity() const {
-    shared_lock<shared_mutex> lock(_sharedMutex);
+    shared_lock <shared_mutex> lock(_sharedMutex);
     return _capacity;
 }
 
