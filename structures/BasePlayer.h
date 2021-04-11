@@ -6,6 +6,7 @@
 
 #include <drogon/drogon.h>
 #include <shared_mutex>
+#include <variant>
 
 namespace tech::structures {
     class BasePlayer {
@@ -16,15 +17,18 @@ namespace tech::structures {
 
         bool isSingleSid() const;
 
-        std::unordered_map<std::string, uint64_t> getSidsMap() const;
+        std::variant<std::string, std::vector<std::string>> getRid() const;
 
-        void setSidsMap(std::unordered_map<std::string, uint64_t> &&sidsMap);
+        uint64_t getSid(const std::string &rid = "") const;
 
-        virtual ~BasePlayer() noexcept {};
+        void setSid(const std::string &rid);
+
+        void setSid(const std::string &rid, const uint64_t &sid);
+
+        virtual ~BasePlayer() noexcept = default;
 
     private:
-        const bool _singleSid;
-        std::unordered_map<std::string, uint64_t> _sidsMap{}; // Room - SID
+        std::variant<std::pair<std::string, uint64_t>, std::unordered_map<std::string, uint64_t>> _sids;
         mutable std::shared_mutex _sharedMutex;
     };
 }
