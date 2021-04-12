@@ -35,6 +35,8 @@ namespace tech::structures {
 
         Json::Value parsePlayerInfo(Json::Value &&data) const;
 
+        ~Stream() override;
+
     private:
         const int _uid;
         uint64_t _score{}, _survivalTime{}, _place{};

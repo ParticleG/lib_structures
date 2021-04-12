@@ -8,7 +8,9 @@ using namespace drogon;
 using namespace tech::structures;
 using namespace std;
 
-Stream::Stream(const int &uid) : BasePlayer(true), _uid(uid) {}
+Stream::Stream(const int &uid) : BasePlayer(true), _uid(uid) {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() <<"] Try constructing 'Stream': " << uid;
+}
 
 int Stream::getUid() const { return _uid; }
 
@@ -36,4 +38,8 @@ Json::Value Stream::parsePlayerInfo(Json::Value &&data) const {
     data["uid"] = getUid();
     data["watch"] = getWatch();
     return data;
+}
+
+Stream::~Stream() {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() <<"] Try destructing 'Stream'";
 }
