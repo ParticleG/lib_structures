@@ -25,31 +25,37 @@ PlayRoom::PlayRoom(
 }
 
 string PlayRoom::getType() const {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try getting type";
     shared_lock<shared_mutex> lock(_sharedMutex);
     return _type;
 }
 
 bool PlayRoom::getPendingStart() const {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try getting pending start";
     shared_lock<shared_mutex> lock(_sharedMutex);
     return _pendingStart;
 }
 
 void PlayRoom::setPendingStart(const bool &pendingStart) {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try setting pending start: " << pendingStart;
     unique_lock<shared_mutex> lock(_sharedMutex);
     _pendingStart = pendingStart;
 }
 
 bool PlayRoom::getStart() const {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try getting start";
     shared_lock<shared_mutex> lock(_sharedMutex);
     return _start;
 }
 
 void PlayRoom::setStart(const bool &start) {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try setting start" << start;
     unique_lock<shared_mutex> lock(_sharedMutex);
     _start = start;
 }
 
 bool PlayRoom::checkReady() const {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try checking ready";
     bool ready = true;
     shared_lock<shared_mutex> lock(_sharedMutex);
     for (auto &pair : _connectionsMap) {
@@ -58,10 +64,12 @@ bool PlayRoom::checkReady() const {
             break;
         }
     }
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Check ready: " << ready;
     return ready;
 }
 
 void PlayRoom::resetReady() {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try resetting ready";
     shared_lock<shared_mutex> lock(_sharedMutex);
     for (auto &pair : _connectionsMap) {
         pair.second->getContext<Play>()->setReady(false);
@@ -69,11 +77,13 @@ void PlayRoom::resetReady() {
 }
 
 bool PlayRoom::checkPassword(const std::string &password) const {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try checking password" << password;
     shared_lock<shared_mutex> lock(_sharedMutex);
     return crypto::blake2b(password, 1) == _encryptedPassword;
 }
 
 void PlayRoom::publish(const uint64_t &action, Json::Value &&message) {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try broadcasting" << websocket::fromJson(message);
     {
         shared_lock<shared_mutex> lock(_sharedMutex);
         for (auto &pair : _connectionsMap) {
@@ -86,6 +96,7 @@ void PlayRoom::publish(const uint64_t &action, Json::Value &&message) {
 }
 
 void PlayRoom::publish(const uint64_t &action, Json::Value &&message, const uint64_t &excluded) {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try exclude broadcasting" << websocket::fromJson(message);
     {
         shared_lock<shared_mutex> lock(_sharedMutex);
         for (auto &pair : _connectionsMap) {
@@ -100,6 +111,7 @@ void PlayRoom::publish(const uint64_t &action, Json::Value &&message, const uint
 }
 
 Json::Value PlayRoom::getHistory(const unsigned int &begin, const unsigned int &count) const {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try getting histories" << count;
     shared_lock<shared_mutex> lock(_sharedMutex);
     Json::Value result(Json::arrayValue);
     if (begin < _history.size()) {
@@ -112,6 +124,7 @@ Json::Value PlayRoom::getHistory(const unsigned int &begin, const unsigned int &
 }
 
 void PlayRoom::_setHistory(Json::Value &&data) {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try setting histories" << websocket::fromJson(data);
     unique_lock<shared_mutex> lock(_sharedMutex);
     _history.push_back(move(data));
     if (_history.size() > _maxHistoryCount) {
@@ -120,9 +133,10 @@ void PlayRoom::_setHistory(Json::Value &&data) {
 }
 
 Json::Value PlayRoom::parseInfo() const {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try parsing info";
     shared_lock<shared_mutex> lock(_sharedMutex);
     Json::Value info;
-    info["rid"] = _id;
+    info["rid"] = _rid;
     info["name"] = _name;
     info["type"] = _type;
     info["private"] = !checkPassword("");
@@ -133,6 +147,7 @@ Json::Value PlayRoom::parseInfo() const {
 }
 
 Json::Value PlayRoom::getPlayers() const {
+    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try getting players";
     shared_lock<shared_mutex> lock(_sharedMutex);
     Json::Value result(Json::arrayValue);
     for (auto &pair : _connectionsMap) {

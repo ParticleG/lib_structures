@@ -27,7 +27,7 @@ namespace tech::structures {
 
         bool isFull() const;
 
-        std::string getID() const;
+        std::string getRID() const;
 
         uint64_t getCount() const;
 
@@ -38,7 +38,7 @@ namespace tech::structures {
         virtual ~BaseRoom() noexcept {};
 
     protected:
-        const std::string _id;
+        const std::string _rid;
         uint64_t _count, _capacity, _cycleID;
         std::unordered_map<uint64_t, drogon::WebSocketConnectionPtr> _connectionsMap;
         mutable std::shared_mutex _sharedMutex;

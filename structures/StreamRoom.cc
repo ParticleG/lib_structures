@@ -40,7 +40,7 @@ void StreamRoom::publish(Json::Value &&message, const uint64_t &excluded) {
 Json::Value StreamRoom::parseInfo() const {
     shared_lock<shared_mutex> lock(_sharedMutex);
     Json::Value info;
-    info["rid"] = _id;
+    info["rid"] = _rid;
     info["count"] = _count;
     info["capacity"] = _capacity;
     return info;

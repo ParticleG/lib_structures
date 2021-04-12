@@ -49,7 +49,7 @@ void ChatRoom::_setHistory(Json::Value &&data) {
 Json::Value ChatRoom::parseInfo() const {
     shared_lock<shared_mutex> lock(_sharedMutex);
     Json::Value info;
-    info["rid"] = _id;
+    info["rid"] = _rid;
     info["count"] = _count;
     info["capacity"] = _capacity;
     return info;
