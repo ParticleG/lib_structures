@@ -15,11 +15,14 @@ namespace tech::structures {
         struct RoomWithMutex {
             explicit RoomWithMutex(RoomType &&room) :
                     room(std::move(room)), sharedMutex(new std::shared_mutex()) {}
-            RoomWithMutex(RoomWithMutex &&moved) noexcept :
+
+            RoomWithMutex(RoomWithMutex &&moved) noexcept:
                     room(std::move(moved.room)), sharedMutex(std::move(moved.sharedMutex)) {}
+
             RoomType room;
             mutable std::unique_ptr<std::shared_mutex> sharedMutex;
         };
+
         struct SharedRoom {
             SharedRoom(RoomType &room, std::shared_lock<std::shared_mutex> &&lock) :
                     room(room), lock(std::move(lock)) {}
@@ -27,6 +30,7 @@ namespace tech::structures {
             RoomType &room;
             std::shared_lock<std::shared_mutex> lock;
         };
+
         struct UniqueRoom {
             UniqueRoom(RoomType &room, std::unique_lock<std::shared_mutex> &&lock) :
                     room(room), lock(std::move(lock)) {}
@@ -41,10 +45,12 @@ namespace tech::structures {
 
         [[maybe_unused]] size_t getSize() const {
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
+            LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try get manager size: " << _idsMap.size();
             return _idsMap.size();
         }
 
         SharedRoom getSharedRoom(const std::string &rid) {
+            LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try get shared room: " << rid;
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
             auto iter = _idsMap.find(rid);
             if (iter != _idsMap.end()) {
@@ -57,6 +63,7 @@ namespace tech::structures {
         }
 
         UniqueRoom getUniqueRoom(const std::string &rid) {
+            LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try get unique room: " << rid;
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
             auto iter = _idsMap.find(rid);
             if (iter != _idsMap.end()) {
@@ -70,22 +77,24 @@ namespace tech::structures {
 
         void createRoom(RoomType &&room) {
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
-            const std::string &id = room.getID();
+            const std::string &rid = room.getRID();
+            LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try create room: " << rid;
             auto[itr, inserted] = _idsMap.try_emplace(
-                    id,
+                    rid,
                     RoomWithMutex(std::move(room))
             );
             if (!inserted) {
-                throw std::overflow_error("Room already subscribed");
+                throw std::overflow_error("Room already exists");
             }
         }
 
         void removeRoom(const std::string &rid) {
+            LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() <<"] Try remove room: " << rid;
             typename decltype(_idsMap)::node_type node;
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
             auto iter = _idsMap.find(rid);
             if (iter != _idsMap.end()) {
-                std::unique_lock<std::shared_mutex>(*iter->second.sharedMutex);
+                std::unique_lock<std::shared_mutex> innerLock(*iter->second.sharedMutex);
                 node = _idsMap.extract(rid);
                 if (node.empty()) {
                     LOG_INFO << "Room " << rid << " already removed";
