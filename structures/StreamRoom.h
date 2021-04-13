@@ -29,6 +29,10 @@ namespace tech::structures {
 
         void setStart(const bool &start);
 
+        bool getFinish() const;
+
+        void setFinish(const bool &finish);
+
         bool checkReady() const;
 
         bool checkFinished() const;
@@ -41,6 +45,6 @@ namespace tech::structures {
         const std::string _playRid;
         const uint64_t _initCount;
         uint64_t _innerPlace;
-        bool _start;
+        bool _start, _finish;
     };
 }

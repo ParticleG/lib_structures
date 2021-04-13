@@ -19,6 +19,7 @@ StreamRoom::StreamRoom(
         const uint64_t &capacity
 ) : BaseRoom(move(srid), capacity), _playRid(std::move(playRid)), _initCount(initCount), _innerPlace(initCount) {
     _start = false;
+    _finish = false;
 }
 
 void StreamRoom::publish(Json::Value &&message) {
@@ -110,4 +111,12 @@ Json::Value StreamRoom::getDeaths() const {
 uint64_t StreamRoom::generatePlace() {
     unique_lock<shared_mutex> lock(_sharedMutex);
     return _innerPlace--;
+}
+
+bool StreamRoom::getFinish() const {
+    return _finish;
+}
+
+void StreamRoom::setFinish(const bool &finish) {
+    _finish = finish;
 }
