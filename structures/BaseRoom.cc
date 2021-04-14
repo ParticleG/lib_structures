@@ -4,6 +4,7 @@
 
 #include <structures/BaseRoom.h>
 #include <structures/BasePlayer.h>
+#include <utils/misc.h>
 
 using namespace tech::structures;
 using namespace tech::utils;
@@ -33,8 +34,8 @@ BaseRoom::BaseRoom(
 }
 
 void BaseRoom::subscribe(WebSocketConnectionPtr connection) {
-    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try subscribing connection";
-    unique_lock <shared_mutex> lock(_sharedMutex);
+    misc::logger(typeid(*this).name(), "Try subscribing connection");
+    unique_lock<shared_mutex> lock(_sharedMutex);
     auto player = connection->getContext<BasePlayer>();
     if (player->isSingleSid() && !get<string>(player->getRid()).empty()) {
         throw length_error("Can only subscribe one room");
@@ -49,17 +50,17 @@ void BaseRoom::subscribe(WebSocketConnectionPtr connection) {
     auto sid = _loopCycleID();
     player->setSid(_rid, sid);
     _connectionsMap[sid] = move(connection);
-    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Subscribe: (" << _rid << ") " << sid;
+    misc::logger(typeid(*this).name(), "Subscribe: (" + _rid + ") " + to_string(sid));
 }
 
 void BaseRoom::unsubscribe(const WebSocketConnectionPtr &connection) {
-    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try unsubscribing connection";
-    unique_lock <shared_mutex> lock(_sharedMutex);
+    misc::logger(typeid(*this).name(), "Try unsubscribing connection");
+    unique_lock<shared_mutex> lock(_sharedMutex);
     auto player = connection->getContext<BasePlayer>();
     if (get<string>(player->getRid()) != _rid) {
         throw underflow_error("Room not subscribed");
     }
-    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Unsubscribe: (" << _rid << ") " << player->getSid(_rid);
+    misc::logger(typeid(*this).name(), "Unsubscribe: (" + _rid + ") " + to_string(player->getSid(_rid)));
     _connectionsMap.erase(player->getSid(_rid));
     player->setSid(_rid);
     --_count;
@@ -67,39 +68,42 @@ void BaseRoom::unsubscribe(const WebSocketConnectionPtr &connection) {
 }
 
 bool BaseRoom::isEmpty() const {
-    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try checking empty";
-    shared_lock <shared_mutex> lock(_sharedMutex);
+    misc::logger(typeid(*this).name(), "Try checking empty");
+    shared_lock<shared_mutex> lock(_sharedMutex);
     return _connectionsMap.empty();
 }
 
 bool BaseRoom::isFull() const {
-    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try checking full";
-    shared_lock <shared_mutex> lock(_sharedMutex);
+    misc::logger(typeid(*this).name(), "Try checking full");
+    shared_lock<shared_mutex> lock(_sharedMutex);
     return _count == _capacity;
 }
 
 std::string BaseRoom::getRID() const {
-    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try getting rid";
-    shared_lock <shared_mutex> lock(_sharedMutex);
+    misc::logger(typeid(*this).name(), "Try getting rid");
+    shared_lock<shared_mutex> lock(_sharedMutex);
     return _rid;
 }
 
 uint64_t BaseRoom::getCount() const {
-    shared_lock <shared_mutex> lock(_sharedMutex);
+    misc::logger(typeid(*this).name(), "Try getting count");
+    shared_lock<shared_mutex> lock(_sharedMutex);
     return _count;
 }
 
 uint64_t BaseRoom::getCapacity() const {
-    shared_lock <shared_mutex> lock(_sharedMutex);
+    misc::logger(typeid(*this).name(), "Try getting capacity");
+    shared_lock<shared_mutex> lock(_sharedMutex);
     return _capacity;
 }
 
 bool BaseRoom::operator==(const BaseRoom &room) const {
-    shared_lock <shared_mutex> lock(_sharedMutex);
+    shared_lock<shared_mutex> lock(_sharedMutex);
     return _rid == room._rid;
 }
 
 uint64_t BaseRoom::_loopCycleID() {
+    misc::logger(typeid(*this).name(), "Try generate sid");
     while (true) {
         if (!_connectionsMap.count(_cycleID)) {
             return _cycleID;

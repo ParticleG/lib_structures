@@ -11,7 +11,7 @@ using namespace tech::structures;
 using namespace tech::utils;
 using namespace std;
 
-Chat::Chat(const int64_t &id): BasePlayer(false) {
+Chat::Chat(const int64_t &id) : BasePlayer(false) {
     Mapper<Techmino::Info> infoMapper(app().getDbClient());
     auto info = infoMapper.findOne(Criteria(Techmino::Info::Cols::__id, CompareOperator::EQ, id));
     _info = make_shared<Techmino::Info>(info);

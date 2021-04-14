@@ -3,13 +3,15 @@
 //
 
 #include <structures/Stream.h>
+#include <utils/misc.h>
 
 using namespace drogon;
 using namespace tech::structures;
+using namespace tech::utils;
 using namespace std;
 
 Stream::Stream(const int &uid) : BasePlayer(true), _uid(uid) {
-    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() <<"] Try constructing 'Stream': " << uid;
+    misc::logger(typeid(*this).name(), "Try constructing 'Stream': " + to_string(uid));
 }
 
 int Stream::getUid() const { return _uid; }
@@ -41,5 +43,5 @@ Json::Value Stream::parsePlayerInfo(Json::Value &&data) const {
 }
 
 Stream::~Stream() {
-    LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() <<"] Try destructing 'Stream'";
+    misc::logger(typeid(*this).name(), "Try destructing 'Stream': " + to_string(_uid));
 }

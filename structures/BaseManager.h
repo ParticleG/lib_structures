@@ -6,6 +6,7 @@
 
 #include <shared_mutex>
 #include <memory>
+#include <utils/misc.h>
 #include <utils/websocket.h>
 
 namespace tech::structures {
@@ -45,12 +46,12 @@ namespace tech::structures {
 
         [[maybe_unused]] size_t getSize() const {
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
-            LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try get manager size: " << _idsMap.size();
+            tech::utils::misc::logger(typeid(*this).name(), "Try get manager size: " + to_string(_idsMap.size()));
             return _idsMap.size();
         }
 
         SharedRoom getSharedRoom(const std::string &rid) {
-            LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try get shared room: " << rid;
+            tech::utils::misc::logger(typeid(*this).name(), "Try get shared room: " + rid);
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
             auto iter = _idsMap.find(rid);
             if (iter != _idsMap.end()) {
@@ -63,7 +64,7 @@ namespace tech::structures {
         }
 
         UniqueRoom getUniqueRoom(const std::string &rid) {
-            LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try get unique room: " << rid;
+            tech::utils::misc::logger(typeid(*this).name(), "Try get unique room: " + rid);
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
             auto iter = _idsMap.find(rid);
             if (iter != _idsMap.end()) {
@@ -78,7 +79,7 @@ namespace tech::structures {
         void createRoom(RoomType &&room) {
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
             const std::string &rid = room.getRID();
-            LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() << "] Try create room: " << rid;
+            tech::utils::misc::logger(typeid(*this).name(), "Try create room: " + rid);
             auto[itr, inserted] = _idsMap.try_emplace(
                     rid,
                     RoomWithMutex(std::move(room))
@@ -89,7 +90,7 @@ namespace tech::structures {
         }
 
         void removeRoom(const std::string &rid) {
-            LOG_DEBUG << "(" << GetCurrentThreadId() << ")[" << typeid(*this).name() <<"] Try remove room: " << rid;
+            tech::utils::misc::logger(typeid(*this).name(), "Try remove room: " + rid);
             typename decltype(_idsMap)::node_type node;
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
             auto iter = _idsMap.find(rid);
