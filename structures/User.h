@@ -14,12 +14,12 @@ namespace tech::structures {
 
         explicit User(const int64_t &id);
 
-        [[nodiscard]] std::shared_ptr<drogon_model::Techmino::Auth> getAuth() const;
+        [[nodiscard]] const drogon_model::Techmino::Auth& getAuth() const;
 
-        [[nodiscard]] std::shared_ptr<drogon_model::Techmino::Info> getInfo() const;
+        [[nodiscard]] const drogon_model::Techmino::Info& getInfo() const;
 
     private:
-        std::shared_ptr<drogon_model::Techmino::Auth> _auth{};
-        std::shared_ptr<drogon_model::Techmino::Info> _info{};
+        drogon_model::Techmino::Auth _auth{};
+        drogon_model::Techmino::Info _info{};
     };
 }

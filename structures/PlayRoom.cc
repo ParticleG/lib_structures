@@ -159,8 +159,8 @@ Json::Value PlayRoom::getPlayers() const {
         auto info = play->getInfo();
 
         tempInfo["sid"] = play->getSid();
-        tempInfo["uid"] = info->getValueOfId();
-        tempInfo["username"] = info->getValueOfUsername();
+        tempInfo["uid"] = info.getValueOfId();
+        tempInfo["username"] = info.getValueOfUsername();
         tempInfo["config"] = play->getConfig();
         tempInfo["ready"] = play->getReady();
         result.append(tempInfo);

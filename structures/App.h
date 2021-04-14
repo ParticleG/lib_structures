@@ -12,9 +12,9 @@ namespace tech::structures {
     public:
         App();
 
-        [[nodiscard]] std::shared_ptr<drogon_model::Techmino::App> getApp() const;
+        [[nodiscard]] const drogon_model::Techmino::App &getApp() const;
 
     private:
-        std::shared_ptr<drogon_model::Techmino::App> _app{};
+        drogon_model::Techmino::App _app;
     };
 }
