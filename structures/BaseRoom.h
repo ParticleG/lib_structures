@@ -35,7 +35,7 @@ namespace tech::structures {
 
         bool operator==(const BaseRoom &room) const;
 
-        virtual ~BaseRoom() noexcept {};
+        virtual ~BaseRoom() noexcept = default;
 
     protected:
         const std::string _rid;
