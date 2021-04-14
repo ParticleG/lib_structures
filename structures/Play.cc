@@ -9,36 +9,40 @@ using namespace drogon_model;
 using namespace tech::structures;
 using namespace std;
 
-Play::Play(const int64_t &id) : BasePlayer(true), _config(string()), _ready(false) {
-    Mapper<Techmino::Info> infoMapper(app().getDbClient());
-    auto info = infoMapper.findOne(Criteria(Techmino::Info::Cols::__id, CompareOperator::EQ, id));
-    _info = make_shared<Techmino::Info>(info);
-}
+Play::Play(const int64_t &id) :
+        BasePlayer(true),
+        _config(string()),
+        _ready(false),
+        _info(Mapper<Techmino::Info>(app().getDbClient()).findOne(Criteria(Techmino::Info::Cols::__id, CompareOperator::EQ, id))) {}
 
-shared_ptr<Techmino::Info> Play::getInfo() const {
+
+const Techmino::Info &Play::getInfo() const {
     return _info;
 }
 
 string Play::getConfig() const {
+    shared_lock<shared_mutex> lock(_sharedMutex);
     return _config;
 }
 
 void Play::setConfig(string &&config) {
+    unique_lock<shared_mutex> lock(_sharedMutex);
     _config = move(config);
 }
 
 bool Play::getReady() const {
+    shared_lock<shared_mutex> lock(_sharedMutex);
     return _ready;
 }
 
 void Play::setReady(const bool ready) {
+    unique_lock<shared_mutex> lock(_sharedMutex);
     _ready = ready;
 }
 
 Json::Value Play::parsePlayerInfo(Json::Value &&data) const {
-    auto info = getInfo();
     data["sid"] = getSid();
-    data["uid"] = info->getValueOfId();
-    data["username"] = info->getValueOfUsername();
+    data["uid"] = _info.getValueOfId();
+    data["username"] = _info.getValueOfUsername();
     return data;
 }

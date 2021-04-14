@@ -11,7 +11,7 @@ namespace tech::structures {
     public:
         explicit Stream(const int &uid);
 
-        int getUid() const;
+        const int &getUid() const;
 
         uint64_t getScore() const;
 
@@ -39,7 +39,7 @@ namespace tech::structures {
 
     private:
         const int _uid;
-        uint64_t _score{}, _survivalTime{}, _place{};
-        bool _watch{}, _dead{};
+        std::atomic<uint64_t> _score{}, _survivalTime{}, _place{};
+        std::atomic<bool> _watch{}, _dead{};
     };
 }

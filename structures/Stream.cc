@@ -14,7 +14,9 @@ Stream::Stream(const int &uid) : BasePlayer(true), _uid(uid) {
     misc::logger(typeid(*this).name(), "Try constructing 'Stream': " + to_string(uid));
 }
 
-int Stream::getUid() const { return _uid; }
+const int &Stream::getUid() const {
+    return _uid;
+}
 
 uint64_t Stream::getScore() const { return _score; }
 
