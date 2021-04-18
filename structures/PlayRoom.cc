@@ -59,6 +59,9 @@ bool PlayRoom::checkReady() const {
     misc::logger(typeid(*this).name(), "Try checking ready");
     bool ready = true;
     shared_lock<shared_mutex> lock(_sharedMutex);
+    if (_connectionsMap.empty()) {
+        return false;
+    }
     for (auto &pair : _connectionsMap) {
         if (!pair.second->getContext<Play>()->getReady()) {
             ready = false;
