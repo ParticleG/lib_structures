@@ -90,7 +90,7 @@ bool StreamRoom::checkFinished() const {
             finished++;
         }
     }
-    return (finished >= _count - 1);
+    return (finished >= (_count - 1 < 0 ? 0 : _count - 1));
 }
 
 Json::Value StreamRoom::getDeaths() const {
