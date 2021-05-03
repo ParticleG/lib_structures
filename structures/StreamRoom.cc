@@ -83,14 +83,14 @@ bool StreamRoom::checkReady() const {
 }
 
 bool StreamRoom::checkFinished() const {
-    int finished = 0;
+    uint64_t finished = 1;
     shared_lock<shared_mutex> lock(_sharedMutex);
     for (auto &pair : _connectionsMap) {
         if (pair.second->getContext<Stream>()->getDead()) {
             finished++;
         }
     }
-    return (finished >= (_count - 1 < 0 ? 0 : _count - 1));
+    return finished >= _count;
 }
 
 Json::Value StreamRoom::getDeaths() const {
