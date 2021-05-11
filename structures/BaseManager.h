@@ -91,12 +91,11 @@ namespace tech::structures {
 
         void removeRoom(const std::string &rid) {
             tech::utils::misc::logger(typeid(*this).name(), "Try remove room: " + rid);
-            typename decltype(_idsMap)::node_type node;
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
             auto iter = _idsMap.find(rid);
             if (iter != _idsMap.end()) {
                 std::unique_lock<std::shared_mutex> innerLock(*iter->second.sharedMutex);
-                node = _idsMap.extract(rid);
+                auto node = _idsMap.extract(rid);
                 if (node.empty()) {
                     LOG_INFO << "Room " << rid << " already removed";
                 }
