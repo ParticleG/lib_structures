@@ -10,13 +10,13 @@ namespace tech::structures {
     public:
         explicit PlayRoom(
                 std::string id,
-                std::string type,
                 std::string name,
                 const std::string &password,
-                const uint64_t &capacity
+                const uint64_t &capacity,
+                Json::Value data
         );
 
-        std::string getType() const;
+        Json::Value getData(const std::string& key = "") const;
 
         bool getPendingStart() const;
 
@@ -44,7 +44,8 @@ namespace tech::structures {
 
     private:
         const unsigned int _maxHistoryCount = 10;
-        const std::string _type, _name, _encryptedPassword;
+        const std::string _name, _encryptedPassword;
+        Json::Value _data;
         bool _pendingStart, _start;
         std::deque<Json::Value> _history;
 

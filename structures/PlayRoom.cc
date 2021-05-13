@@ -13,22 +13,22 @@ using namespace std;
 
 PlayRoom::PlayRoom(
         string id,
-        string type,
         string name,
         const string &password,
-        const uint64_t &capacity
+        const uint64_t &capacity,
+        Json::Value data
 ) : BaseRoom(move(id), capacity),
-    _type(move(type)),
     _name(move(name)),
-    _encryptedPassword(crypto::blake2b(password, 1)) {
+    _encryptedPassword(crypto::blake2b(password, 1)),
+    _data(move(data)) {
     _pendingStart = false;
     _start = false;
 }
 
-string PlayRoom::getType() const {
-    misc::logger(typeid(*this).name(), "Try getting type");
+Json::Value PlayRoom::getData(const string& key) const {
+    misc::logger(typeid(*this).name(), "Try getting data");
     shared_lock<shared_mutex> lock(_sharedMutex);
-    return _type;
+    return key.empty() ? _data : _data[key];
 }
 
 bool PlayRoom::getPendingStart() const {
@@ -143,7 +143,7 @@ Json::Value PlayRoom::parseInfo() const {
     Json::Value info;
     info["rid"] = _rid;
     info["name"] = _name;
-    info["type"] = _type;
+    info["type"] = getData("type");
     info["private"] = !checkPassword("");
     info["start"] = getStart();
     info["count"] = _count;
