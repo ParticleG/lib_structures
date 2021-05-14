@@ -50,6 +50,15 @@ namespace tech::structures {
             return _idsMap.size();
         }
 
+        std::vector<std::string> getRidList() {
+            std::vector<std::string> result;
+            std::shared_lock<std::shared_mutex> lock(_sharedMutex);
+            for (const auto &pair: _idsMap) {
+                result.push_back(pair.first);
+            }
+            return result;
+        }
+
         SharedRoom getSharedRoom(const std::string &rid) {
             tech::utils::misc::logger(typeid(*this).name(), "Try get shared room: " + rid);
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
