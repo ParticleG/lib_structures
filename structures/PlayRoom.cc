@@ -13,22 +13,40 @@ using namespace std;
 
 PlayRoom::PlayRoom(
         string id,
-        string name,
         const string &password,
         const uint64_t &capacity,
+        Json::Value info,
         Json::Value data
 ) : BaseRoom(move(id), capacity),
-    _name(move(name)),
     _encryptedPassword(crypto::blake2b(password, 1)),
+    _info(move(info)),
     _data(move(data)) {
     _pendingStart = false;
     _start = false;
 }
 
-Json::Value PlayRoom::getData(const string& key) const {
+Json::Value PlayRoom::getInfo(const string &key) const {
+    misc::logger(typeid(*this).name(), "Try getting info");
+    shared_lock<shared_mutex> lock(_sharedMutex);
+    return key.empty() ? _info : _info[key];
+}
+
+Json::Value PlayRoom::getData(const string &key) const {
     misc::logger(typeid(*this).name(), "Try getting data");
     shared_lock<shared_mutex> lock(_sharedMutex);
     return key.empty() ? _data : _data[key];
+}
+
+void PlayRoom::setInfo(const string &key, Json::Value value) {
+    misc::logger(typeid(*this).name(), "Try setting info");
+    unique_lock<shared_mutex> lock(_sharedMutex);
+    _info[key] = move(value);
+}
+
+void PlayRoom::setData(const string &key, Json::Value value) {
+    misc::logger(typeid(*this).name(), "Try setting data");
+    unique_lock<shared_mutex> lock(_sharedMutex);
+    _data[key] = move(value);
 }
 
 bool PlayRoom::getPendingStart() const {
@@ -86,25 +104,12 @@ bool PlayRoom::checkPassword(const std::string &password) const {
     return crypto::blake2b(password, 1) == _encryptedPassword;
 }
 
-void PlayRoom::publish(const uint64_t &action, Json::Value &&message) {
-    misc::logger(typeid(*this).name(), "Try broadcasting" + websocket::fromJson(message));
-    {
-        shared_lock<shared_mutex> lock(_sharedMutex);
-        for (auto &pair : _connectionsMap) {
-            pair.second->send(websocket::fromJson(message));
-        }
-    }
-    if (action == 4) {
-        _setHistory(move(message["data"]));
-    }
-}
-
 void PlayRoom::publish(const uint64_t &action, Json::Value &&message, const uint64_t &excluded) {
     misc::logger(typeid(*this).name(), "Try exclude broadcasting" + websocket::fromJson(message));
     {
         shared_lock<shared_mutex> lock(_sharedMutex);
         for (auto &pair : _connectionsMap) {
-            if (excluded != pair.second->getContext<Play>()->getSid()) {
+            if (!excluded || excluded != pair.second->getContext<Play>()->getSid()) {
                 pair.second->send(websocket::fromJson(message));
             }
         }
@@ -142,11 +147,10 @@ Json::Value PlayRoom::parseInfo() const {
     shared_lock<shared_mutex> lock(_sharedMutex);
     Json::Value info;
     info["rid"] = _rid;
-    info["name"] = _name;
-    info["type"] = getData("type");
-    info["private"] = !checkPassword("");
-    info["start"] = getStart();
-    info["count"] = _count;
+    info["roomInfo"] = _info;
+    info["private"] = crypto::blake2b("", 1) != _encryptedPassword;
+    info["start"] = _start;
+    info["count"] = _connectionsMap.size();
     info["capacity"] = _capacity;
     misc::logger(typeid(*this).name(), "Info: " + websocket::fromJson(info));
     return info;
