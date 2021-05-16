@@ -22,17 +22,10 @@ StreamRoom::StreamRoom(
     _finish = false;
 }
 
-void StreamRoom::publish(Json::Value &&message) {
-    shared_lock<shared_mutex> lock(_sharedMutex);
-    for (auto &pair : _connectionsMap) {
-        pair.second->send(websocket::fromJson(message));
-    }
-}
-
 void StreamRoom::publish(Json::Value &&message, const uint64_t &excluded) {
     shared_lock<shared_mutex> lock(_sharedMutex);
     for (auto &pair : _connectionsMap) {
-        if (excluded != pair.second->getContext<Stream>()->getSid()) {
+        if (!excluded || excluded != pair.second->getContext<Stream>()->getSid()) {
             pair.second->send(websocket::fromJson(message));
         }
     }
@@ -42,7 +35,7 @@ Json::Value StreamRoom::parseInfo() const {
     shared_lock<shared_mutex> lock(_sharedMutex);
     Json::Value info;
     info["rid"] = _rid;
-    info["count"] = _count;
+    info["count"] = _connectionsMap.size();
     info["capacity"] = _capacity;
     return info;
 }
@@ -90,7 +83,7 @@ bool StreamRoom::checkFinished() const {
             finished++;
         }
     }
-    return finished >= _count;
+    return finished >= _connectionsMap.size();;
 }
 
 Json::Value StreamRoom::getDeaths() const {

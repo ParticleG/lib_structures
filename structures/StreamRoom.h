@@ -15,9 +15,7 @@ namespace tech::structures {
                 const uint64_t &capacity
         );
 
-        void publish(Json::Value &&message);
-
-        void publish(Json::Value &&message, const uint64_t &excluded);
+        void publish(Json::Value &&message, const uint64_t &excluded = 0);
 
         Json::Value parseInfo() const;
 
