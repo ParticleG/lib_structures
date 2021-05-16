@@ -39,7 +39,7 @@ namespace tech::structures {
 
     protected:
         const std::string _rid;
-        uint64_t _count, _capacity, _cycleID;
+        uint64_t _capacity, _cycleID;
         std::unordered_map<uint64_t, drogon::WebSocketConnectionPtr> _connectionsMap;
         mutable std::shared_mutex _sharedMutex;
 

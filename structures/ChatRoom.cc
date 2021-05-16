@@ -50,7 +50,7 @@ Json::Value ChatRoom::parseInfo() const {
     shared_lock<shared_mutex> lock(_sharedMutex);
     Json::Value info;
     info["rid"] = _rid;
-    info["count"] = _count;
+    info["count"] = _connectionsMap.size();
     info["capacity"] = _capacity;
     return info;
 }

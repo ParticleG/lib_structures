@@ -14,14 +14,12 @@ using namespace std;
 BaseRoom::BaseRoom(const BaseRoom &room) :
         _rid(room._rid) {
     _capacity = room._capacity;
-    _count = room._count;
     _cycleID = room._cycleID;
 }
 
 BaseRoom::BaseRoom(BaseRoom &&room) noexcept:
         _rid(room._rid) {
     _capacity = room._capacity;
-    _count = room._count;
     _cycleID = room._cycleID;
 }
 
@@ -29,24 +27,23 @@ BaseRoom::BaseRoom(
         string &&id,
         const uint64_t &capacity
 ) : _rid(id), _capacity(capacity) {
-    _count = 0;
-    _cycleID = 0;
+    _cycleID = 1;
 }
 
 void BaseRoom::subscribe(WebSocketConnectionPtr connection) {
     misc::logger(typeid(*this).name(), "Try subscribing connection");
-    unique_lock<shared_mutex> lock(_sharedMutex);
     auto player = connection->getContext<BasePlayer>();
     if (player->isSingleSid() && !get<string>(player->getRid()).empty()) {
         throw length_error("Can only subscribe one room");
     }
+    if (isFull()) {
+        throw range_error("Room is full");
+    }
+
+    unique_lock<shared_mutex> lock(_sharedMutex);
     if (get<string>(player->getRid()) == _rid) {
         throw overflow_error("Room already subscribed");
     }
-    if (_count == _capacity) {
-        throw range_error("Room is full");
-    }
-    ++_count;
     auto sid = _loopCycleID();
     player->setSid(_rid, sid);
     _connectionsMap[sid] = move(connection);
@@ -55,16 +52,14 @@ void BaseRoom::subscribe(WebSocketConnectionPtr connection) {
 
 void BaseRoom::unsubscribe(const WebSocketConnectionPtr &connection) {
     misc::logger(typeid(*this).name(), "Try unsubscribing connection");
-    unique_lock<shared_mutex> lock(_sharedMutex);
     auto player = connection->getContext<BasePlayer>();
+    unique_lock<shared_mutex> lock(_sharedMutex);
     if (get<string>(player->getRid()) != _rid) {
         throw underflow_error("Room not subscribed");
     }
     misc::logger(typeid(*this).name(), "Unsubscribe: (" + _rid + ") " + to_string(player->getSid(_rid)));
     _connectionsMap.erase(player->getSid(_rid));
     player->setSid(_rid);
-    --_count;
-
 }
 
 bool BaseRoom::isEmpty() const {
@@ -76,7 +71,7 @@ bool BaseRoom::isEmpty() const {
 bool BaseRoom::isFull() const {
     misc::logger(typeid(*this).name(), "Try checking full");
     shared_lock<shared_mutex> lock(_sharedMutex);
-    return _count == _capacity;
+    return _connectionsMap.size() == _capacity;
 }
 
 std::string BaseRoom::getRID() const {
@@ -88,7 +83,7 @@ std::string BaseRoom::getRID() const {
 uint64_t BaseRoom::getCount() const {
     misc::logger(typeid(*this).name(), "Try getting count");
     shared_lock<shared_mutex> lock(_sharedMutex);
-    return _count;
+    return _connectionsMap.size();
 }
 
 uint64_t BaseRoom::getCapacity() const {
@@ -108,6 +103,6 @@ uint64_t BaseRoom::_loopCycleID() {
         if (!_connectionsMap.count(_cycleID)) {
             return _cycleID;
         }
-        _cycleID = _cycleID + 1 == _capacity ? 0 : _cycleID + 1;
+        _cycleID = _cycleID + 1 > _capacity ? 1 : _cycleID + 1;
     }
 }
