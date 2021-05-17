@@ -27,8 +27,10 @@ namespace tech::structures {
 
         virtual ~BasePlayer() noexcept = default;
 
+    protected:
+        mutable std::shared_mutex _sharedMutex;
+
     private:
         std::variant<std::pair<std::string, uint64_t>, std::unordered_map<std::string, uint64_t>> _sids;
-        mutable std::shared_mutex _sharedMutex;
     };
 }
