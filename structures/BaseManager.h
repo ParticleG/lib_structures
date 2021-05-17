@@ -40,10 +40,6 @@ namespace tech::structures {
             std::unique_lock<std::shared_mutex> lock;
         };
 
-        virtual void subscribe(const std::string &rid, drogon::WebSocketConnectionPtr connection) = 0;
-
-        virtual void unsubscribe(const std::string &rid, const drogon::WebSocketConnectionPtr &connection) = 0;
-
         [[maybe_unused]] size_t getSize() const {
             std::shared_lock<std::shared_mutex> lock(_sharedMutex);
             tech::utils::misc::logger(typeid(*this).name(), "Try get manager size: " + to_string(_idsMap.size()));
