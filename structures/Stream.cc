@@ -14,8 +14,19 @@ Stream::Stream(const int &uid) : BasePlayer(true), _uid(uid) {
     misc::logger(typeid(*this).name(), "Try constructing 'Stream': " + to_string(uid));
 }
 
-const int &Stream::getUid() const {
-    return _uid;
+const int &Stream::getUid() const { return _uid; }
+
+void Stream::addHistory(const string &message) {
+    unique_lock<shared_mutex> lock(_sharedMutex);
+    _history += message;
+}
+
+Json::Value Stream::parseHistory() const {
+    Json::Value result;
+    shared_lock<shared_mutex> lock(_sharedMutex);
+    result["uid"] = _uid;
+    result["streams"] = _history;
+    return result;
 }
 
 uint64_t Stream::getScore() const { return _score; }

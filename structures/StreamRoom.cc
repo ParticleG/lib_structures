@@ -32,17 +32,27 @@ void StreamRoom::publish(Json::Value &&message, const uint64_t &excluded) {
 }
 
 Json::Value StreamRoom::parseInfo() const {
-    shared_lock<shared_mutex> lock(_sharedMutex);
     Json::Value info;
+    shared_lock<shared_mutex> lock(_sharedMutex);
     info["rid"] = _rid;
     info["count"] = _connectionsMap.size();
     info["capacity"] = _capacity;
     return info;
 }
 
-Json::Value StreamRoom::getPlayers() const {
+Json::Value StreamRoom::parseHistories() const {
+    Json::Value result;
+    result["histories"] = Json::arrayValue;
     shared_lock<shared_mutex> lock(_sharedMutex);
+    for (auto &pair : _connectionsMap) {
+        result["histories"].append(pair.second->getContext<Stream>()->parseHistory());
+    }
+    return result;
+}
+
+Json::Value StreamRoom::getPlayers() const {
     Json::Value result(Json::arrayValue);
+    shared_lock<shared_mutex> lock(_sharedMutex);
     for (auto &pair : _connectionsMap) {
         result.append(pair.second->getContext<Stream>()->parsePlayerInfo(Json::objectValue));
     }
@@ -83,12 +93,12 @@ bool StreamRoom::checkFinished() const {
             finished++;
         }
     }
-    return finished >= _connectionsMap.size();;
+    return finished >= _connectionsMap.size();
 }
 
 Json::Value StreamRoom::getDeaths() const {
-    shared_lock<shared_mutex> lock(_sharedMutex);
     Json::Value result(Json::arrayValue);
+    shared_lock<shared_mutex> lock(_sharedMutex);
     for (auto &pair : _connectionsMap) {
         auto stream = pair.second->getContext<Stream>();
         Json::Value tempInfo;
@@ -107,9 +117,11 @@ uint64_t StreamRoom::generatePlace() {
 }
 
 bool StreamRoom::getFinish() const {
+    shared_lock<shared_mutex> lock(_sharedMutex);
     return _finish;
 }
 
 void StreamRoom::setFinish(const bool &finish) {
+    unique_lock<shared_mutex> lock(_sharedMutex);
     _finish = finish;
 }

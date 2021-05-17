@@ -13,6 +13,10 @@ namespace tech::structures {
 
         const int &getUid() const;
 
+        void addHistory(const std::string &message);
+
+        Json::Value parseHistory() const;
+
         uint64_t getScore() const;
 
         void setScore(const uint64_t &score);
@@ -39,6 +43,7 @@ namespace tech::structures {
 
     private:
         const int _uid;
+        std::string _history;
         std::atomic<uint64_t> _score{}, _survivalTime{}, _place{};
         std::atomic<bool> _watch{}, _dead{};
     };

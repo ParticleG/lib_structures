@@ -19,6 +19,8 @@ namespace tech::structures {
 
         Json::Value parseInfo() const;
 
+        Json::Value parseHistories() const;
+
         Json::Value getPlayers() const;
 
         std::string getPlayRid() const;
