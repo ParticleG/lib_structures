@@ -38,6 +38,10 @@ namespace tech::structures {
 
         bool checkPassword(const std::string &password) const;
 
+        std::string getRelatedStreamRid() const;
+
+        void setRelatedStreamRid(const std::string &relatedStreamRid);
+
         void publish(const uint64_t &action, Json::Value &&message, const uint64_t &excluded = 0);
 
         Json::Value getPlayers() const;
@@ -49,6 +53,7 @@ namespace tech::structures {
     private:
         const unsigned int _maxHistoryCount = 10;
         const std::string _encryptedPassword;
+        std::string _relatedStreamRid{};
         Json::Value _info, _data;
         bool _pendingStart, _start;
         std::deque<Json::Value> _history;

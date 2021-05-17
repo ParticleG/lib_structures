@@ -104,6 +104,16 @@ bool PlayRoom::checkPassword(const std::string &password) const {
     return crypto::blake2b(password, 1) == _encryptedPassword;
 }
 
+std::string PlayRoom::getRelatedStreamRid() const {
+    shared_lock<shared_mutex> lock(_sharedMutex);
+    return _relatedStreamRid;
+}
+
+void PlayRoom::setRelatedStreamRid(const std::string &relatedStreamRid) {
+    unique_lock<shared_mutex> lock(_sharedMutex);
+    _relatedStreamRid = relatedStreamRid;
+}
+
 void PlayRoom::publish(const uint64_t &action, Json::Value &&message, const uint64_t &excluded) {
     misc::logger(typeid(*this).name(), "Try exclude broadcasting" + websocket::fromJson(message));
     {
