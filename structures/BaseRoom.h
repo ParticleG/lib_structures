@@ -19,7 +19,7 @@ namespace tech::structures {
                 const uint64_t &capacity
         );
 
-        void subscribe(drogon::WebSocketConnectionPtr connection);
+        virtual void subscribe(drogon::WebSocketConnectionPtr connection);
 
         void unsubscribe(const drogon::WebSocketConnectionPtr &connection);
 
