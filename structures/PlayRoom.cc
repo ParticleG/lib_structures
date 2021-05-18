@@ -73,6 +73,18 @@ void PlayRoom::setStart(const bool &start) {
     _start = start;
 }
 
+unordered_map<uint64_t, bool> PlayRoom::getPlayingMap() const {
+    unordered_map<uint64_t, bool> result;
+    shared_lock<shared_mutex> lock(_sharedMutex);
+    for (const auto &pair:_connectionsMap) {
+        auto play = pair.second->getContext<Play>();
+        if (play->getMode() == Play::PlayMode::ready) {
+            result.insert({play->getInfo().getValueOfId(), false});
+        }
+    }
+    return result;
+}
+
 bool PlayRoom::checkReady() const {
     misc::logger(typeid(*this).name(), "Try checking ready");
     bool ready = true;
@@ -81,7 +93,7 @@ bool PlayRoom::checkReady() const {
         return false;
     }
     for (auto &pair : _connectionsMap) {
-        if (!pair.second->getContext<Play>()->getReady()) {
+        if (pair.second->getContext<Play>()->getMode() == Play::PlayMode::standby) {
             ready = false;
             break;
         }
@@ -94,7 +106,7 @@ void PlayRoom::resetReady() {
     misc::logger(typeid(*this).name(), "Try resetting ready");
     shared_lock<shared_mutex> lock(_sharedMutex);
     for (auto &pair : _connectionsMap) {
-        pair.second->getContext<Play>()->setReady(false);
+        pair.second->getContext<Play>()->setMode(false);
     }
 }
 
@@ -179,7 +191,7 @@ Json::Value PlayRoom::getPlayers() const {
         tempInfo["uid"] = info.getValueOfId();
         tempInfo["username"] = info.getValueOfUsername();
         tempInfo["config"] = play->getConfig();
-        tempInfo["ready"] = play->getReady();
+        tempInfo["mode"] = static_cast<int64_t>(play->getMode());
         result.append(tempInfo);
     }
     misc::logger(typeid(*this).name(), "Players: " + websocket::fromJson(result));

@@ -32,6 +32,8 @@ namespace tech::structures {
 
         void setStart(const bool &start);
 
+        std::unordered_map<uint64_t, bool> getPlayingMap() const;
+
         bool checkReady() const;
 
         void resetReady();
