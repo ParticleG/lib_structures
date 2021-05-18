@@ -25,7 +25,7 @@ Json::Value Stream::parseHistory() const {
     Json::Value result;
     shared_lock<shared_mutex> lock(_sharedMutex);
     result["uid"] = _uid;
-    result["streams"] = _history;
+    result["stream"] = _history;
     return result;
 }
 
