@@ -15,11 +15,42 @@ using namespace std;
 StreamRoom::StreamRoom(
         string playRid,
         string srid,
-        const uint64_t &initCount,
+        unordered_map<uint64_t, bool> players,
         const uint64_t &capacity
-) : BaseRoom(move(srid), capacity), _playRid(std::move(playRid)), _initCount(initCount), _innerPlace(initCount) {
+) : BaseRoom(move(srid), capacity),
+    _playRid(std::move(playRid)),
+    _innerPlace(players.size()),
+    _players(move(players)),
+    _seed(misc::uniform_random()) {
     _start = false;
     _finish = false;
+}
+
+void StreamRoom::subscribe(WebSocketConnectionPtr connection) {
+    misc::logger(typeid(*this).name(), "Try subscribing connection");
+    auto player = connection->getContext<Stream>();
+    if (player->isSingleSid() && !get<string>(player->getRid()).empty()) {
+        throw length_error("Can only subscribe one room");
+    }
+    if (isFull()) {
+        throw range_error("Room is full");
+    }
+
+    unique_lock<shared_mutex> lock(_sharedMutex);
+    if (get<string>(player->getRid()) == _rid) {
+        throw overflow_error("Room already subscribed");
+    }
+    auto sid = _loopCycleID();
+    player->setSid(_rid, sid);
+    _connectionsMap[sid] = move(connection);
+    try {
+        if (!_players.at(player->getUid())) {
+            _players[player->getUid()] = true;
+        }
+    } catch (...) {
+        misc::logger(typeid(*this).name(), "Spectator: (" + to_string(player->getUid()) + ") " + to_string(sid));
+    }
+    misc::logger(typeid(*this).name(), "Subscribe: (" + _rid + ") " + to_string(sid));
 }
 
 void StreamRoom::publish(Json::Value &&message, const uint64_t &excluded) {
@@ -42,10 +73,10 @@ Json::Value StreamRoom::parseInfo() const {
 
 Json::Value StreamRoom::parseHistories() const {
     Json::Value result;
-    result["histories"] = Json::arrayValue;
+    result["history"] = Json::arrayValue;
     shared_lock<shared_mutex> lock(_sharedMutex);
     for (auto &pair : _connectionsMap) {
-        result["histories"].append(pair.second->getContext<Stream>()->parseHistory());
+        result["history"].append(pair.second->getContext<Stream>()->parseHistory());
     }
     return result;
 }
@@ -64,6 +95,16 @@ std::string StreamRoom::getPlayRid() const {
     return _playRid;
 }
 
+uint64_t StreamRoom::getSeed() const {
+    shared_lock<shared_mutex> lock(_sharedMutex);
+    return _seed;
+}
+
+bool StreamRoom::checkIfPlaying(const int64_t &uid) const {
+    shared_lock<shared_mutex> lock(_sharedMutex);
+    return _players.count(uid);
+}
+
 bool StreamRoom::getStart() const {
     shared_lock<shared_mutex> lock(_sharedMutex);
     return _start;
@@ -75,25 +116,30 @@ void StreamRoom::setStart(const bool &start) {
 }
 
 bool StreamRoom::checkReady() const {
-    int ready = 0;
+    bool ready = true;
     shared_lock<shared_mutex> lock(_sharedMutex);
-    for (auto &pair : _connectionsMap) {
-        if (!pair.second->getContext<Stream>()->getSpectate()) {
-            ready++;
+    for (auto &pair : _players) {
+        if (!pair.second) {
+            ready = false;
+            break;
         }
     }
-    return ready == _initCount;
+    return ready;
 }
 
 bool StreamRoom::checkFinished() const {
-    uint64_t finished = 1;
+    uint64_t finished{}, playerCount{};
     shared_lock<shared_mutex> lock(_sharedMutex);
     for (auto &pair : _connectionsMap) {
-        if (pair.second->getContext<Stream>()->getDead()) {
+        auto stream = pair.second->getContext<Stream>();
+        if (stream->getDead()) {
             finished++;
         }
+        if (_players.count(stream->getUid())) {
+            playerCount++;
+        }
     }
-    return finished >= _connectionsMap.size();
+    return playerCount - finished <= 1;
 }
 
 Json::Value StreamRoom::getDeaths() const {
