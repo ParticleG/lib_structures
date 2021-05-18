@@ -31,6 +31,8 @@ namespace tech::structures {
 
         bool checkIfPlaying(const int64_t &uid) const;
 
+        bool hasConnection() const;
+
         bool getStart() const;
 
         void setStart(const bool &start);

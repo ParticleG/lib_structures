@@ -105,6 +105,18 @@ bool StreamRoom::checkIfPlaying(const int64_t &uid) const {
     return _players.count(uid);
 }
 
+bool StreamRoom::hasConnection() const {
+    bool result = false;
+    shared_lock<shared_mutex> lock(_sharedMutex);
+    for (auto &pair : _players) {
+        if (pair.second) {
+            result = true;
+            break;
+        }
+    }
+    return result;
+}
+
 bool StreamRoom::getStart() const {
     shared_lock<shared_mutex> lock(_sharedMutex);
     return _start;
