@@ -87,7 +87,7 @@ unordered_map<uint64_t, bool> PlayRoom::getPlayingMap() const {
 
 bool PlayRoom::checkReady() const {
     misc::logger(typeid(*this).name(), "Try checking ready");
-    bool ready = true;
+    bool ready = true, hasPlayer = false;
     shared_lock<shared_mutex> lock(_sharedMutex);
     if (_connectionsMap.empty()) {
         return false;
@@ -97,16 +97,19 @@ bool PlayRoom::checkReady() const {
             ready = false;
             break;
         }
+        if (pair.second->getContext<Play>()->getMode() == Play::PlayMode::ready) {
+            hasPlayer = true;
+        }
     }
     misc::logger(typeid(*this).name(), "Check ready: " + to_string(ready));
-    return ready;
+    return ready && hasPlayer;
 }
 
 void PlayRoom::resetReady() {
     misc::logger(typeid(*this).name(), "Try resetting ready");
     shared_lock<shared_mutex> lock(_sharedMutex);
     for (auto &pair : _connectionsMap) {
-        pair.second->getContext<Play>()->setMode(false);
+        pair.second->getContext<Play>()->setMode(Play::PlayMode::standby);
     }
 }
 
