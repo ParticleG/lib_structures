@@ -29,9 +29,9 @@ namespace tech::structures {
 
         void setPlace(const uint64_t &place);
 
-        bool getWatch() const;
+        bool getSpectate() const;
 
-        void setWatch(const bool &watch);
+        void setSpectate(const bool &spectate);
 
         bool getDead() const;
 
@@ -45,6 +45,6 @@ namespace tech::structures {
         const int _uid;
         std::string _history;
         std::atomic<uint64_t> _score{}, _survivalTime{}, _place{};
-        std::atomic<bool> _watch{}, _dead{};
+        std::atomic<bool> _spectate{}, _dead{};
     };
 }

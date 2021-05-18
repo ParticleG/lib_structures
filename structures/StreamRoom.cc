@@ -78,7 +78,7 @@ bool StreamRoom::checkReady() const {
     int ready = 0;
     shared_lock<shared_mutex> lock(_sharedMutex);
     for (auto &pair : _connectionsMap) {
-        if (!pair.second->getContext<Stream>()->getWatch()) {
+        if (!pair.second->getContext<Stream>()->getSpectate()) {
             ready++;
         }
     }

@@ -41,9 +41,9 @@ uint64_t Stream::getPlace() const { return _place; }
 
 void Stream::setPlace(const uint64_t &place) { _place = place; }
 
-bool Stream::getWatch() const { return _watch; }
+bool Stream::getSpectate() const { return _spectate; }
 
-void Stream::setWatch(const bool &watch) { _watch = watch; }
+void Stream::setSpectate(const bool &spectate) { _spectate = spectate; }
 
 bool Stream::getDead() const { return _dead; }
 
@@ -51,7 +51,7 @@ void Stream::setDead(const bool &dead) { _dead = dead; }
 
 Json::Value Stream::parsePlayerInfo(Json::Value &&data) const {
     data["uid"] = getUid();
-    data["watch"] = getWatch();
+    data["spectate"] = getSpectate();
     return data;
 }
 
