@@ -12,7 +12,7 @@ using namespace std;
 Play::Play(const int64_t &id) :
         BasePlayer(true),
         _config(string()),
-        _ready(false),
+        _mode(PlayMode::standby),
         _info(Mapper<Techmino::Info>(app().getDbClient()).findOne(Criteria(Techmino::Info::Cols::__id, CompareOperator::EQ, id))) {}
 
 
@@ -30,14 +30,19 @@ void Play::setConfig(string &&config) {
     _config = move(config);
 }
 
-bool Play::getReady() const {
+Play::PlayMode Play::getMode() const {
     shared_lock<shared_mutex> lock(_sharedMutex);
-    return _ready;
+    return _mode;
 }
 
-void Play::setReady(const bool ready) {
+void Play::setMode(const PlayMode mode) {
     unique_lock<shared_mutex> lock(_sharedMutex);
-    _ready = ready;
+    _mode = mode;
+}
+
+void Play::setMode(const int64_t mode) {
+    unique_lock<shared_mutex> lock(_sharedMutex);
+    _mode = static_cast<PlayMode>(mode);
 }
 
 Json::Value Play::parsePlayerInfo(Json::Value &&data) const {

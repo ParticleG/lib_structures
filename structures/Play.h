@@ -10,6 +10,12 @@
 namespace tech::structures {
     class Play : public BasePlayer {
     public:
+        enum class PlayMode {
+            standby,
+            ready,
+            spectate
+        };
+
         explicit Play(const int64_t &id);
 
         const drogon_model::Techmino::Info &getInfo() const;
@@ -18,9 +24,11 @@ namespace tech::structures {
 
         void setConfig(std::string &&config);
 
-        bool getReady() const;
+        PlayMode getMode() const;
 
-        void setReady(bool ready);
+        void setMode(PlayMode mode);
+
+        void setMode(int64_t mode);
 
         Json::Value parsePlayerInfo(Json::Value &&data) const;
 
@@ -28,6 +36,6 @@ namespace tech::structures {
         mutable std::shared_mutex _sharedMutex;
         drogon_model::Techmino::Info _info{};
         std::string _config;
-        bool _ready;
+        PlayMode _mode;
     };
 }
