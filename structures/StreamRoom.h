@@ -11,9 +11,11 @@ namespace tech::structures {
         explicit StreamRoom(
                 std::string playRid,
                 std::string srid,
-                const uint64_t &initCount,
+                std::unordered_map<uint64_t, bool> players,
                 const uint64_t &capacity
         );
+
+        void subscribe(drogon::WebSocketConnectionPtr connection) override;
 
         void publish(Json::Value &&message, const uint64_t &excluded = 0);
 
@@ -24,6 +26,10 @@ namespace tech::structures {
         Json::Value getPlayers() const;
 
         std::string getPlayRid() const;
+
+        uint64_t getSeed() const;
+
+        bool checkIfPlaying(const int64_t &uid) const;
 
         bool getStart() const;
 
@@ -43,7 +49,8 @@ namespace tech::structures {
 
     private:
         const std::string _playRid;
-        const uint64_t _initCount;
+        const uint64_t _seed;
+        std::unordered_map<uint64_t, bool> _players;
         uint64_t _innerPlace;
         bool _start, _finish;
     };
