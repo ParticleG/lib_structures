@@ -147,11 +147,11 @@ bool StreamRoom::checkFinished() const {
         if (stream->getDead()) {
             finished++;
         }
-        if (_players.count(stream->getUid())) {
+        if (!stream->getSpectate()) {
             playerCount++;
         }
     }
-    return playerCount - finished <= 1;
+    return finished + 1 >= playerCount;
 }
 
 Json::Value StreamRoom::getDeaths() const {
