@@ -5,8 +5,6 @@
 #include <structures/StreamRoom.h>
 #include <utils/misc.h>
 
-#include <utility>
-
 using namespace drogon;
 using namespace tech::structures;
 using namespace tech::utils;
@@ -161,7 +159,7 @@ Json::Value StreamRoom::getDeaths() const {
         auto stream = pair.second->getContext<Stream>();
         Json::Value tempInfo;
         tempInfo["uid"] = stream->getUid();
-        tempInfo["place"] = stream->getPlace() ? stream->getPlace() : 1;
+        tempInfo["place"] = stream->getSpectate() ? 0 : stream->getPlace();
         tempInfo["score"] = stream->getScore();
         tempInfo["survivalTime"] = stream->getSurvivalTime();
         result.append(tempInfo);

@@ -44,7 +44,7 @@ namespace tech::structures {
     private:
         const int _uid;
         std::string _history;
-        std::atomic<uint64_t> _score{}, _survivalTime{}, _place{};
+        std::atomic<uint64_t> _score{}, _survivalTime{}, _place = 1;
         std::atomic<bool> _spectate{}, _dead{};
     };
 }
