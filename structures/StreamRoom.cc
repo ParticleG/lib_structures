@@ -17,9 +17,10 @@ StreamRoom::StreamRoom(
         const uint64_t &capacity
 ) : BaseRoom(move(srid), capacity),
     _playRid(std::move(playRid)),
-    _innerPlace(players.size()),
     _players(move(players)),
     _seed(misc::uniform_random()) {
+    LOG_INFO << "Init Size: " << _players.size();
+    _innerPlace = _players.size();
     _start = false;
     _finish = false;
 }
@@ -157,9 +158,12 @@ Json::Value StreamRoom::getDeaths() const {
     shared_lock<shared_mutex> lock(_sharedMutex);
     for (auto &pair : _connectionsMap) {
         auto stream = pair.second->getContext<Stream>();
+        if (stream->getSpectate()) {
+            continue;
+        }
         Json::Value tempInfo;
         tempInfo["uid"] = stream->getUid();
-        tempInfo["place"] = stream->getSpectate() ? 0 : stream->getPlace();
+        tempInfo["place"] = stream->getPlace();
         tempInfo["score"] = stream->getScore();
         tempInfo["survivalTime"] = stream->getSurvivalTime();
         result.append(tempInfo);
@@ -169,6 +173,7 @@ Json::Value StreamRoom::getDeaths() const {
 
 uint64_t StreamRoom::generatePlace() {
     unique_lock<shared_mutex> lock(_sharedMutex);
+    LOG_INFO << "Inner Place: " << _innerPlace;
     return _innerPlace--;
 }
 
