@@ -99,8 +99,9 @@ namespace tech::structures {
             std::unique_lock<std::shared_mutex> lock(_sharedMutex);
             auto iter = _idsMap.find(rid);
             if (iter != _idsMap.end()) {
+                typename decltype(_idsMap)::node_type node; // Declare node first to avoid memory leak
                 std::unique_lock<std::shared_mutex> innerLock(*iter->second.sharedMutex);
-                auto node = _idsMap.extract(rid);
+                node = _idsMap.extract(rid);
                 if (node.empty()) {
                     LOG_INFO << "Room " << rid << " already removed";
                 }
