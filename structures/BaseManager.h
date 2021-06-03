@@ -25,7 +25,7 @@ namespace tech::structures {
         };
 
         struct SharedRoom {
-            SharedRoom(RoomType &room, std::shared_lock<std::shared_mutex> &&lock) :
+            [[maybe_unused]]SharedRoom(RoomType &room, std::shared_lock<std::shared_mutex> &&lock) :
                     room(room), lock(std::move(lock)) {}
 
             RoomType &room;
@@ -33,7 +33,7 @@ namespace tech::structures {
         };
 
         struct UniqueRoom {
-            UniqueRoom(RoomType &room, std::unique_lock<std::shared_mutex> &&lock) :
+            [[maybe_unused]]UniqueRoom(RoomType &room, std::unique_lock<std::shared_mutex> &&lock) :
                     room(room), lock(std::move(lock)) {}
 
             RoomType &room;
