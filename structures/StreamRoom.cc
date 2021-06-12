@@ -19,7 +19,6 @@ StreamRoom::StreamRoom(
     _playRid(std::move(playRid)),
     _players(move(players)),
     _seed(misc::uniform_random()) {
-    LOG_INFO << "Init Size: " << _players.size();
     _innerPlace = _players.size();
     _start = false;
     _finish = false;
@@ -173,7 +172,6 @@ Json::Value StreamRoom::getDeaths() const {
 
 uint64_t StreamRoom::generatePlace() {
     unique_lock<shared_mutex> lock(_sharedMutex);
-    LOG_INFO << "Inner Place: " << _innerPlace;
     return _innerPlace--;
 }
 
